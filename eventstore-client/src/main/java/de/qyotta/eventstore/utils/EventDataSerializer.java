@@ -22,12 +22,19 @@ public class EventDataSerializer implements JsonDeserializer<SerializableEventDa
    public SerializableEventData deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
       final SerializableEventData.SerializableEventDataBuilder builder = SerializableEventData.builder();
       final JsonObject object = json.getAsJsonObject();
-      final String type = object.get(TYPE)
-            .getAsString();
+      final JsonElement typeElement = object.get(TYPE);
+      final JsonElement dataElement = object.get(DATA);
+      // fallback
+      if (typeElement == null || dataElement == null) {
+         final Object data = context.deserialize(json, Object.class);
+         return builder.data(data)
+               .build();
+      }
+      final String type = typeElement.getAsString();
       try {
          final Class<?> classOfData = Class.forName(type);
          builder.type(type)
-               .data(context.deserialize(object.get(DATA), classOfData));
+               .data(context.deserialize(dataElement, classOfData));
          return builder.build();
       } catch (final ClassNotFoundException e) {
          throw new RuntimeException("SerializableEventData was serialized in an unknown type: " + type, e);
