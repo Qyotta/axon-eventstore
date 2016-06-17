@@ -1,87 +1,13 @@
 package de.qyotta.eventstore;
 
-import static de.qyotta.eventstore.model.Link.EDIT;
-import static de.qyotta.eventstore.model.Link.PREVIOUS;
-
-import java.util.Deque;
-import java.util.LinkedList;
-import java.util.List;
-
-import de.qyotta.eventstore.model.Entry;
 import de.qyotta.eventstore.model.EventResponse;
-import de.qyotta.eventstore.model.EventStreamFeed;
-import de.qyotta.eventstore.model.Link;
 
-public class EventStream {
+public interface EventStream {
 
-   private final EsContext context;
-   private List<Link> currentLinks;
-   private Deque<Entry> currentEntries;
-   private EventResponse next;
+   boolean hasNext();
 
-   public EventStream(final String streamUrl, EsContext context) {
-      this.context = context;
-      final EventStreamFeed initialFeed = context.getReader()
-            .readStream(streamUrl);
+   EventResponse next();
 
-      final Link last = find(Link.LAST, initialFeed.getLinks());
-      loadFeed(last.getUri());
-   }
+   EventResponse peek();
 
-   private void loadFeed(final String feedUrl) {
-      final EventStreamFeed feed = context.getReader()
-            .readStream(feedUrl);
-      currentLinks = feed.getLinks();
-      currentEntries = new LinkedList<>(feed.getEntries());
-      if (!currentEntries.isEmpty()) {
-         loadNextEvent();
-      } else {
-         next = null;
-      }
-   }
-
-   boolean hasNext() {
-      // If 'links' contains a 'previous' link, we have elements left
-      return next != null;
-   }
-
-   public final EventResponse next() {
-      final EventResponse result = next;
-      loadNextEvent();
-      return result;
-   }
-
-   /**
-    * @return the next event in the stream or null if there are no more
-    */
-   private void loadNextEvent() {
-      if (!currentEntries.isEmpty()) {
-         next = readEvent(currentEntries.pollLast());
-         return;
-      }
-      final Link previous = find(PREVIOUS, currentLinks);
-      if (previous != null) {
-         loadFeed(previous.getUri());
-         return;
-      }
-      next = null; // no more events
-   }
-
-   public final EventResponse peek() {
-      return next;
-   }
-
-   private EventResponse readEvent(Entry entry) {
-      return context.getReader()
-            .readEvent(find(EDIT, entry.getLinks()).getUri());
-   }
-
-   private Link find(final String relation, final List<Link> links) {
-      for (final Link link : links) {
-         if (relation.equals(link.getRelation())) {
-            return link;
-         }
-      }
-      return null;
-   }
 }

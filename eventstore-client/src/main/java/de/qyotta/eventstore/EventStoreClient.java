@@ -14,7 +14,7 @@ public class EventStoreClient {
    }
 
    public EventStream readEvents(final String streamName) {
-      return new EventStream(streamUrlForName(streamName), context);
+      return new EventStreamImpl(streamUrlForName(streamName), context);
    }
 
    public void appendEvent(final String streamName, final Event event) {

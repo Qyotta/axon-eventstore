@@ -39,7 +39,7 @@ public class EsReader {
       try {
          return load(url, EventStreamFeed.class);
       } catch (final IOException e) {
-         throw new RuntimeException("Could not initialize EventStream from url: '" + url + "'.", e);
+         throw new RuntimeException("Could not initialize EventStreamImpl from url: '" + url + "'.", e);
       }
    }
 

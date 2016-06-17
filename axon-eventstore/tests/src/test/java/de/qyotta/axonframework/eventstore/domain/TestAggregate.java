@@ -1,4 +1,4 @@
-package de.qyotta.axonframework.eventstore.config;
+package de.qyotta.axonframework.eventstore.domain;
 
 import org.axonframework.commandhandling.annotation.CommandHandler;
 import org.axonframework.eventsourcing.annotation.AbstractAnnotatedAggregateRoot;

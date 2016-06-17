@@ -2,6 +2,7 @@ package de.qyotta.eventstore;
 
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
 
 import java.util.HashMap;
@@ -38,7 +39,9 @@ public class EventStoreClientTest extends AbstractEsTest {
       streamName = EventStoreClientTest.class.getSimpleName() + "-" + UUID.randomUUID();
       streamUrl = BASE_STREAMS_URL + streamName;
       expectedEvents = new HashMap<>();
-      numberOfStoredEvents = 100;
+   }
+
+   private void createEvents(int numberOfEvents) {
       for (int i = 0; i < numberOfStoredEvents; i++) {
          final String eventUuid = UUID.randomUUID()
                .toString();
@@ -63,6 +66,9 @@ public class EventStoreClientTest extends AbstractEsTest {
 
    @Test
    public void shouldTraverseAllEventsInOrder() {
+      numberOfStoredEvents = 100;
+      createEvents(numberOfStoredEvents);
+
       final EventStream eventStream = client.readEvents(streamName);
       int count = 0;
       long previousEventNumber = -1;
@@ -80,6 +86,21 @@ public class EventStoreClientTest extends AbstractEsTest {
          count++;
       }
       assertThat("Expected to read '" + numberOfStoredEvents + "' events but got '" + count + "'.", count, is(equalTo(numberOfStoredEvents)));
+   }
+
+   @Test
+   public void shouldNotFailOnASingleStoredEvent() {
+      numberOfStoredEvents = 1;
+      createEvents(numberOfStoredEvents);
+      final EventStream eventStream = client.readEvents(streamName);
+      final EventResponse next = eventStream.next();
+      final Event actual = next.getContent();
+      final Event expected = expectedEvents.get(actual.getEventId());
+      assertThat(actual.getEventId(), is(equalTo(expected.getEventId())));
+      assertThat(actual.getEventType(), is(equalTo(expected.getEventType())));
+      assertThat(actual.getMetadata(), is(equalTo(expected.getMetadata())));
+      assertThat(actual.getData(), is(equalTo(expected.getData())));
+      assertFalse(eventStream.hasNext());
    }
 
    @Getter

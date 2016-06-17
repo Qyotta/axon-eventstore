@@ -1,4 +1,4 @@
-package de.qyotta.axonframework.eventstore.config;
+package de.qyotta.axonframework.eventstore.domain;
 
 import lombok.Value;
 

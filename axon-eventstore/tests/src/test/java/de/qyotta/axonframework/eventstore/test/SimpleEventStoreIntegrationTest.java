@@ -1,4 +1,4 @@
-package de.qyotta.axonframework.eventstore.config;
+package de.qyotta.axonframework.eventstore.test;
 
 import static com.jayway.awaitility.Awaitility.await;
 import static com.jayway.awaitility.Duration.TWO_SECONDS;
@@ -9,6 +9,10 @@ import org.axonframework.commandhandling.CommandCallback;
 import org.axonframework.commandhandling.gateway.CommandGateway;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import de.qyotta.axonframework.eventstore.config.AbstractIntegrationTest;
+import de.qyotta.axonframework.eventstore.domain.ChangeTestAggregate;
+import de.qyotta.axonframework.eventstore.domain.CreateTestAggregate;
 
 @SuppressWarnings("nls")
 public class SimpleEventStoreIntegrationTest extends AbstractIntegrationTest {

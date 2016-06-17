@@ -17,4 +17,12 @@ import lombok.ToString;
 public class SerializableEventData {
    private String type;
    private Object data;
+
+   public static <T> SerializableEventData of(T data) {
+      return SerializableEventData.builder()
+            .type(data.getClass()
+                  .getName())
+            .data(data)
+            .build();
+   }
 }

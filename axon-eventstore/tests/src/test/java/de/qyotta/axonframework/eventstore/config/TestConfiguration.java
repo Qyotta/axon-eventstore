@@ -42,7 +42,8 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 import de.qyotta.axonframework.eventstore.EsEventStore;
-import de.qyotta.axonframework.eventstore.Settings;
+import de.qyotta.axonframework.eventstore.domain.TestAggregate;
+import de.qyotta.eventstore.EventStoreSettings;
 
 @Configuration
 @ComponentScan(basePackages = { "de.qyotta.axonframework.eventstore.config" })
@@ -56,7 +57,7 @@ public class TestConfiguration {
    @Bean
    @Autowired
    public EventStore eventStore(final UpcasterChain upcasterChain, final Serializer serializer) {
-      final EsEventStore esEventStore = new EsEventStore(Settings.withDefaults()
+      final EsEventStore esEventStore = new EsEventStore(EventStoreSettings.withDefaults()
             .build(), serializer);
       esEventStore.setUpcasterChain(upcasterChain);
       return esEventStore;
