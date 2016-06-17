@@ -19,7 +19,7 @@ import lombok.ToString;
 @SuppressWarnings("nls")
 public class Link {
    public static final String LAST = "last";
-   public static final String PREVIOUS = "last";
+   public static final String PREVIOUS = "previous";
    public static final String EDIT = "edit";
    private String uri;
    private String relation;

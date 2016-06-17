@@ -21,5 +21,5 @@ import lombok.ToString;
 public class Entry {
    private String title;
    private String id;
-   private List<String> links;
+   private List<Link> links;
 }

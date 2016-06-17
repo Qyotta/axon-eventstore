@@ -14,11 +14,7 @@ import lombok.ToString;
 @EqualsAndHashCode
 @NoArgsConstructor(access = AccessLevel.PUBLIC)
 @AllArgsConstructor(access = AccessLevel.PUBLIC)
-public class Event {
-   private String eventStreamId;
-   private String eventId;
-   private Long eventNumber;
-   private String eventType;
-   private SerializableEventData data;
-   private Object metadata;
+public class SerializableEventData {
+   private String type;
+   private Object data;
 }

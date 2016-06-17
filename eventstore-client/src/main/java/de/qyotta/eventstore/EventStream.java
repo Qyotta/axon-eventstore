@@ -1,69 +1,87 @@
 package de.qyotta.eventstore;
 
-import java.io.IOException;
+import static de.qyotta.eventstore.model.Link.EDIT;
+import static de.qyotta.eventstore.model.Link.PREVIOUS;
+
+import java.util.Deque;
+import java.util.LinkedList;
 import java.util.List;
-import java.util.Queue;
 
 import de.qyotta.eventstore.model.Entry;
-import de.qyotta.eventstore.model.Event;
+import de.qyotta.eventstore.model.EventResponse;
 import de.qyotta.eventstore.model.EventStreamFeed;
 import de.qyotta.eventstore.model.Link;
 
 public class EventStream {
 
-   private static final String STREAMS_PATH = "/streams/"; //$NON-NLS-1$
    private final EsContext context;
-   private final String streamUrl;
    private List<Link> currentLinks;
-   private Queue<Entry> currentEntries;
+   private Deque<Entry> currentEntries;
+   private EventResponse next;
 
-   public EventStream(final String streamName, EsContext context) {
+   public EventStream(final String streamUrl, EsContext context) {
       this.context = context;
-      streamUrl = context.getSettings()
-            .getHost() + STREAMS_PATH + streamName;
-      try {
-         final EventStreamFeed initialFeed = context.getReader()
-               .readStream(streamUrl);
+      final EventStreamFeed initialFeed = context.getReader()
+            .readStream(streamUrl);
 
-         final Link last = find(Link.LAST, initialFeed.getLinks());
-         final EventStreamFeed lastFeed = context.getReader()
-               .readStream(last.getUri());
-         initFromFeed(lastFeed);
-      } catch (final IOException e) {
-         throw new RuntimeException("Could not initialize EventStream.", e); //$NON-NLS-1$
-      }
+      final Link last = find(Link.LAST, initialFeed.getLinks());
+      loadFeed(last.getUri());
    }
 
-   private void initFromFeed(EventStreamFeed feed) {
+   private void loadFeed(final String feedUrl) {
+      final EventStreamFeed feed = context.getReader()
+            .readStream(feedUrl);
       currentLinks = feed.getLinks();
-      for (final Entry entry : feed.getEntries()) {
-         // the first element is the newest so we simply add them to the queue (last in first out) to both reverse the processing order as well as easier handling
-         currentEntries.add(entry);
+      currentEntries = new LinkedList<>(feed.getEntries());
+      if (!currentEntries.isEmpty()) {
+         loadNextEvent();
+      } else {
+         next = null;
       }
    }
 
    boolean hasNext() {
       // If 'links' contains a 'previous' link, we have elements left
-      return !currentEntries.isEmpty();
+      return next != null;
    }
 
-   public final Event next() {
-      return readEvent(currentEntries.poll());
+   public final EventResponse next() {
+      final EventResponse result = next;
+      loadNextEvent();
+      return result;
    }
 
-   public final Event peek() {
-      return readEvent(currentEntries.peek());
+   /**
+    * @return the next event in the stream or null if there are no more
+    */
+   private void loadNextEvent() {
+      if (!currentEntries.isEmpty()) {
+         next = readEvent(currentEntries.pollLast());
+         return;
+      }
+      final Link previous = find(PREVIOUS, currentLinks);
+      if (previous != null) {
+         loadFeed(previous.getUri());
+         return;
+      }
+      next = null; // no more events
    }
 
-   private Event readEvent(Entry entry) {
-      // TODO
+   public final EventResponse peek() {
+      return next;
+   }
+
+   private EventResponse readEvent(Entry entry) {
+      return context.getReader()
+            .readEvent(find(EDIT, entry.getLinks()).getUri());
+   }
+
+   private Link find(final String relation, final List<Link> links) {
+      for (final Link link : links) {
+         if (relation.equals(link.getRelation())) {
+            return link;
+         }
+      }
       return null;
-   }
-
-   private Link find(String relation, final List<Link> links) {
-      return links.stream()
-            .filter(l -> relation.equals(l.getRelation()))
-            .findFirst()
-            .get();
    }
 }
