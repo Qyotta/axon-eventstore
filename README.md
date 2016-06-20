@@ -1,5 +1,5 @@
 # axon-eventstore
-An implementation of the axon EventStore using Greg Young's Event Store to use with the Axon Framework (http://www.axonframework.org)
+An implementation of the axon EventStore using Greg Young's Event Store (https://geteventstore.com/) to use with the Axon Framework (http://www.axonframework.org)
 
 ## What you get
 * A simple java client for Greg Young's Event Store.
