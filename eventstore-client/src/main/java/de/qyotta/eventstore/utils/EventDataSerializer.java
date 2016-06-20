@@ -33,7 +33,7 @@ public class EventDataSerializer implements JsonDeserializer<SerializableEventDa
       final String type = typeElement.getAsString();
       try {
          final Class<?> classOfData = Class.forName(type);
-         builder.type(type)
+         builder.type(classOfData)
                .data(context.deserialize(dataElement, classOfData));
          return builder.build();
       } catch (final ClassNotFoundException e) {

@@ -36,34 +36,4 @@
       </profile>
    </profiles>
 
-   <build>
-      <plugins>
-         <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-compiler-plugin</artifactId>
-            <version>${maven.compiler.plugin.version}</version>
-            <configuration>
-               <source>${java.version}</source>
-               <target>${java.version}</target>
-               <meminitial>1024m</meminitial>
-               <maxmem>2024m</maxmem>
-            </configuration>
-         </plugin>
-         <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-source-plugin</artifactId>
-            <version>${maven.source.plugin.version}</version>
-            <executions>
-               <execution>
-                  <id>attach-sources</id>
-                  <phase>package</phase>
-                  <goals>
-                     <goal>jar-no-fork</goal>
-                  </goals>
-               </execution>
-            </executions>
-         </plugin>
-      </plugins>
-   </build>
-
 </project>

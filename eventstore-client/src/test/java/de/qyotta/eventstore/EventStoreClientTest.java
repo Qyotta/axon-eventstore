@@ -42,14 +42,14 @@ public class EventStoreClientTest extends AbstractEsTest {
    }
 
    private void createEvents(int numberOfEvents) {
-      for (int i = 0; i < numberOfStoredEvents; i++) {
+      for (int i = 0; i < numberOfEvents; i++) {
          final String eventUuid = UUID.randomUUID()
                .toString();
          expectedEvents.put(eventUuid, Event.builder()
                .eventId(eventUuid)
                .eventType("Testtype")
                .data(SerializableEventData.builder()
-                     .type(MyEvent.class.getName())
+                     .type(MyEvent.class)
                      .data(new MyEvent(eventUuid))
                      .build())
                .metadata("Test")

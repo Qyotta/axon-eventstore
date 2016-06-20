@@ -15,13 +15,12 @@ import lombok.ToString;
 @NoArgsConstructor(access = AccessLevel.PUBLIC)
 @AllArgsConstructor(access = AccessLevel.PUBLIC)
 public class SerializableEventData {
-   private String type;
+   private Class<?> type;
    private Object data;
 
    public static <T> SerializableEventData of(T data) {
       return SerializableEventData.builder()
-            .type(data.getClass()
-                  .getName())
+            .type(data.getClass())
             .data(data)
             .build();
    }

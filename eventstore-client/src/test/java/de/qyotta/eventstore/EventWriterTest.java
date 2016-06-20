@@ -50,7 +50,7 @@ public class EventWriterTest extends AbstractEsTest {
             .eventId(eventId)
             .eventType("Testtype")
             .data(SerializableEventData.builder()
-                  .type(String.class.getName())
+                  .type(String.class)
                   .data("TEST")
                   .build())
             .metadata("Test")
