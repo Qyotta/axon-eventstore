@@ -10,9 +10,6 @@ import org.axonframework.domain.DomainEventMessage;
 import org.axonframework.domain.DomainEventStream;
 import org.axonframework.eventstore.EventStore;
 import org.axonframework.eventstore.EventStreamNotFoundException;
-import org.axonframework.serializer.Serializer;
-import org.axonframework.upcasting.UpcasterAware;
-import org.axonframework.upcasting.UpcasterChain;
 
 import de.qyotta.eventstore.EventStoreClient;
 import de.qyotta.eventstore.EventStoreSettings;
@@ -21,27 +18,15 @@ import de.qyotta.eventstore.model.Event;
 import de.qyotta.eventstore.model.SerializableEventData;
 
 @SuppressWarnings({ "nls", "rawtypes" })
-public class EsEventStore implements EventStore, UpcasterAware {
-   private final EventStoreSettings settings;
-   // private final EsEventStorage eventSerializer;
-   private UpcasterChain upcasterChain;
-   private final Serializer serializer;
+public class EsEventStore implements EventStore {
    private final EventStoreClient client;
 
-   public EsEventStore(final EventStoreSettings settings, final Serializer serializer) {
-      this.settings = settings;
-      this.serializer = serializer;
+   public EsEventStore(final EventStoreSettings settings) {
       this.client = new EventStoreClient(settings);
-      // eventSerializer = new EsEventStorage(settings, serializer);
    }
 
    @Override
-   public void setUpcasterChain(UpcasterChain upcasterChain) {
-      this.upcasterChain = upcasterChain;
-   }
-
-   @Override
-   public void appendEvents(String type, DomainEventStream events) {
+   public void appendEvents(final String type, final DomainEventStream events) {
       final Map<Object, List<Event>> identifierToEventStoreEvents = new HashMap<>();
       while (events.hasNext()) {
          final DomainEventMessage message = events.next();
@@ -55,6 +40,16 @@ public class EsEventStore implements EventStore, UpcasterAware {
       for (final Object identifier : identifierToEventStoreEvents.keySet()) {
          client.appendEvents(getStreamName(type, identifier), identifierToEventStoreEvents.get(identifier));
       }
+   }
+
+   @Override
+   public DomainEventStream readEvents(String type, Object identifier) {
+      final EventStream eventStoreEventStream = client.readEvents(getStreamName(type, identifier));
+      final DomainEventStream stream = new EsEventStreamBackedDomainEventStream(eventStoreEventStream);
+      if (!stream.hasNext()) {
+         throw new EventStreamNotFoundException(type, identifier);
+      }
+      return stream;
    }
 
    private Event toEvent(DomainEventMessage message) {
@@ -75,16 +70,6 @@ public class EsEventStore implements EventStore, UpcasterAware {
                   .metaData(metaData)
                   .build()))
             .build();
-   }
-
-   @Override
-   public DomainEventStream readEvents(String type, Object identifier) {
-      final EventStream eventStoreEventStream = client.readEvents(getStreamName(type, identifier));
-      final DomainEventStream stream = new EsEventStreamBackedDomainEventStream(eventStoreEventStream);
-      if (!stream.hasNext()) {
-         throw new EventStreamNotFoundException(type, identifier);
-      }
-      return stream;
    }
 
    private String getStreamName(String type, Object identifier) {

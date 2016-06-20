@@ -1,8 +1,6 @@
 package de.qyotta.axonframework.eventstore.config;
 
 import java.net.UnknownHostException;
-import java.util.Arrays;
-import java.util.List;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
@@ -28,11 +26,6 @@ import org.axonframework.eventsourcing.EventSourcingRepository;
 import org.axonframework.eventstore.EventStore;
 import org.axonframework.saga.ResourceInjector;
 import org.axonframework.saga.spring.SpringResourceInjector;
-import org.axonframework.serializer.Serializer;
-import org.axonframework.serializer.json.JacksonSerializer;
-import org.axonframework.upcasting.SimpleUpcasterChain;
-import org.axonframework.upcasting.Upcaster;
-import org.axonframework.upcasting.UpcasterChain;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationContext;
@@ -49,17 +42,11 @@ import de.qyotta.eventstore.EventStoreSettings;
 @ComponentScan(basePackages = { "de.qyotta.axonframework.eventstore.config" })
 public class TestConfiguration {
 
-   @Bean(name = "serializer")
-   public Serializer serializer() {
-      return new JacksonSerializer();
-   }
-
    @Bean
    @Autowired
-   public EventStore eventStore(final UpcasterChain upcasterChain, final Serializer serializer) {
+   public EventStore eventStore() {
       final EsEventStore esEventStore = new EsEventStore(EventStoreSettings.withDefaults()
-            .build(), serializer);
-      esEventStore.setUpcasterChain(upcasterChain);
+            .build());
       return esEventStore;
    }
 
@@ -141,14 +128,6 @@ public class TestConfiguration {
    @Bean
    public ScheduledExecutorService scheduledExecutorService() {
       return new ScheduledThreadPoolExecutor(5);
-   }
-
-   @Bean
-   @Autowired
-   public UpcasterChain upcasterChain(@Qualifier("serializer") final Serializer serializer) {
-      @SuppressWarnings("rawtypes")
-      final List<Upcaster> upcasters = Arrays.asList(); // add upcasters here
-      return new SimpleUpcasterChain(serializer, upcasters);
    }
 
    @Bean(name = "clusterTaskExecutor")
