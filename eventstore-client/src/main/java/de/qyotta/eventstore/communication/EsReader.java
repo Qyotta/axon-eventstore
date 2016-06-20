@@ -20,6 +20,7 @@ import com.google.gson.JsonDeserializer;
 
 import de.qyotta.eventstore.model.EventResponse;
 import de.qyotta.eventstore.model.EventStreamFeed;
+import de.qyotta.eventstore.model.EventStreamNotFoundException;
 import de.qyotta.eventstore.model.SerializableEventData;
 
 @SuppressWarnings("nls")
@@ -60,12 +61,14 @@ public class EsReader {
          LOGGER.info("Executing request " + httpget.getRequestLine());
          final CloseableHttpResponse response = httpclient.execute(httpget);
          try {
-            if (!(HttpStatus.SC_OK == response.getStatusLine()
-                  .getStatusCode())) {
+            final int statusCode = response.getStatusLine().getStatusCode();
+            if (HttpStatus.SC_NOT_FOUND == statusCode || HttpStatus.SC_NO_CONTENT == statusCode) {
+               throw new EventStreamNotFoundException();
+            }
+            if (!(HttpStatus.SC_OK == statusCode)) {
                throw new RuntimeException("Could not load stream feed from url: " + url);
             }
-            final T result = gson.fromJson(new BufferedReader(new InputStreamReader(response.getEntity()
-                  .getContent())), type);
+            final T result = gson.fromJson(new BufferedReader(new InputStreamReader(response.getEntity().getContent())), type);
             EntityUtils.consume(response.getEntity());
             return result;
          } finally {

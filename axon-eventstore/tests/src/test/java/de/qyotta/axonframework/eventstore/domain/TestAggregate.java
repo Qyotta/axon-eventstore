@@ -1,6 +1,7 @@
 package de.qyotta.axonframework.eventstore.domain;
 
 import org.axonframework.commandhandling.annotation.CommandHandler;
+import org.axonframework.domain.MetaData;
 import org.axonframework.eventsourcing.annotation.AbstractAnnotatedAggregateRoot;
 import org.axonframework.eventsourcing.annotation.AggregateIdentifier;
 import org.axonframework.eventsourcing.annotation.EventSourcingHandler;
@@ -16,17 +17,17 @@ public class TestAggregate extends AbstractAnnotatedAggregateRoot<String> {
    private int numberofevents;
 
    @CommandHandler
-   public TestAggregate(final CreateTestAggregate command) {
+   public TestAggregate(final CreateTestAggregate command, final MetaData metaData) {
       this.aggregateId = command.getAggregateId();
-      apply(new TestAggregateCreated(command.getAggregateId()));
+      apply(new TestAggregateCreated(command.getAggregateId()), metaData);
    }
 
    @CommandHandler
-   public void onCommand(final ChangeTestAggregate command) {
+   public void onCommand(final ChangeTestAggregate command, final MetaData metaData) {
       if (numberofevents > 9) {
          throw new IllegalStateException("Maximum number of events reached ;)"); //$NON-NLS-1$
       }
-      apply(new TestAggregateChanged(command.getAggregateId()));
+      apply(new TestAggregateChanged(command.getAggregateId()), metaData);
    }
 
    @EventSourcingHandler

@@ -15,6 +15,7 @@ import org.axonframework.domain.EventMessage;
 import org.axonframework.eventhandling.EventBus;
 import org.axonframework.eventhandling.EventListener;
 import org.axonframework.eventsourcing.annotation.AbstractAnnotatedAggregateRoot;
+import org.axonframework.eventstore.EventStore;
 import org.junit.Before;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -51,6 +52,8 @@ public abstract class AbstractIntegrationTest {
 
    @Autowired
    protected EventBus eventBus;
+   @Autowired
+   protected EventStore eventStore;
    private EventStoreClient client;
 
    @Before

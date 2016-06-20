@@ -12,14 +12,13 @@ import org.axonframework.domain.DomainEventStream;
 import org.axonframework.eventstore.EventStore;
 import org.axonframework.eventstore.EventStreamNotFoundException;
 
-import de.qyotta.axonframework.eventstore.utils.EsEventStoreUtils;
 import de.qyotta.eventstore.EventStoreClient;
 import de.qyotta.eventstore.EventStoreSettings;
 import de.qyotta.eventstore.EventStream;
 import de.qyotta.eventstore.model.Event;
 import de.qyotta.eventstore.model.SerializableEventData;
 
-@SuppressWarnings({ "nls", "rawtypes" })
+@SuppressWarnings({"rawtypes"})
 public class EsEventStore implements EventStore {
    private final EventStoreClient client;
 
@@ -46,9 +45,14 @@ public class EsEventStore implements EventStore {
 
    @Override
    public DomainEventStream readEvents(String type, Object identifier) {
-      final EventStream eventStoreEventStream = client.readEvents(getStreamName(type, identifier));
-      final DomainEventStream stream = new EsEventStreamBackedDomainEventStream(eventStoreEventStream);
-      if (!stream.hasNext()) {
+      DomainEventStream stream;
+      try {
+         final EventStream eventStoreEventStream = client.readEvents(getStreamName(type, identifier));
+         stream = new EsEventStreamBackedDomainEventStream(eventStoreEventStream);
+         if (!stream.hasNext()) {
+            throw new EventStreamNotFoundException(type, identifier);
+         }
+      } catch (de.qyotta.eventstore.model.EventStreamNotFoundException e) {
          throw new EventStreamNotFoundException(type, identifier);
       }
       return stream;
