@@ -18,7 +18,7 @@ An implementation of the axon EventStore using Greg Young's Event Store (https:/
 ```xml
 <dependency>
   <groupId>de.qyotta.eventstore</groupId>
-  <artifactId>eventstore-parent</artifactId>
+  <artifactId>axon-eventstore</artifactId>
   <version>0.1-SNAPSHOT</version>
 </dependency>
 ```
