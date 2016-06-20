@@ -1,5 +1,6 @@
 package de.qyotta.axonframework.eventstore;
 
+import static de.qyotta.axonframework.eventstore.utils.EsEventStoreUtils.getStreamName;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -11,6 +12,7 @@ import org.axonframework.domain.DomainEventStream;
 import org.axonframework.eventstore.EventStore;
 import org.axonframework.eventstore.EventStreamNotFoundException;
 
+import de.qyotta.axonframework.eventstore.utils.EsEventStoreUtils;
 import de.qyotta.eventstore.EventStoreClient;
 import de.qyotta.eventstore.EventStoreSettings;
 import de.qyotta.eventstore.EventStream;
@@ -70,9 +72,5 @@ public class EsEventStore implements EventStore {
                   .metaData(metaData)
                   .build()))
             .build();
-   }
-
-   private String getStreamName(String type, Object identifier) {
-      return type.toLowerCase() + "-" + identifier.toString();
    }
 }

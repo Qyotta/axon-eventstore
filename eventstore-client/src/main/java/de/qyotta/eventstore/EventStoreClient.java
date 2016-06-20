@@ -18,17 +18,18 @@ public class EventStoreClient {
    }
 
    public void appendEvent(final String streamName, final Event event) {
-      context.getWriter()
-            .appendEvent(streamUrlForName(streamName), event);
+      context.getWriter().appendEvent(streamUrlForName(streamName), event);
    }
 
    public void appendEvents(final String streamName, final Collection<Event> collection) {
-      context.getWriter()
-            .appendEvents(streamUrlForName(streamName), collection);
+      context.getWriter().appendEvents(streamUrlForName(streamName), collection);
+   }
+
+   public void deleteStream(final String streamName, final boolean deletePermanently) {
+      context.getWriter().deleteStream(streamUrlForName(streamName), deletePermanently);
    }
 
    private String streamUrlForName(final String streamName) {
-      return context.getSettings()
-            .getHost() + STREAMS_PATH + streamName;
+      return context.getSettings().getHost() + STREAMS_PATH + streamName;
    }
 }
