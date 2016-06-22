@@ -2,6 +2,7 @@ package de.qyotta.axonframework.eventstore;
 
 import org.axonframework.domain.DomainEventMessage;
 import org.axonframework.domain.DomainEventStream;
+import org.axonframework.domain.GenericDomainEventMessage;
 import org.axonframework.domain.MetaData;
 import org.joda.time.DateTime;
 
@@ -34,6 +35,7 @@ public class EsEventStreamBackedDomainEventStream implements DomainEventStream {
             .getContent());
    }
 
+   @SuppressWarnings("unchecked")
    private DomainEventMessage domainEventMessageOf(final Event event) {
       if (!(event.getData()
             .getData() instanceof SerializableDomainEvent)) {
@@ -41,17 +43,8 @@ public class EsEventStreamBackedDomainEventStream implements DomainEventStream {
       }
       final SerializableDomainEvent data = (SerializableDomainEvent) event.getData()
             .getData();
-      return DeserializedDomainEventMessage.builder()
-            .aggregateIdentifier(data.getAggregateIdentifier())
-            .identifier(event.getEventId())
-            .timestamp(new DateTime(data.getTimestamp()))
-            .payloadType(data.getPayload()
-                  .getData()
-                  .getClass())
-            .payload(data.getPayload()
-                  .getData())
-            .metaData(new MetaData(data.getMetaData()))
-            .sequenceNumber(event.getEventNumber())
-            .build();
+      return new GenericDomainEventMessage(event.getEventId(), new DateTime(data.getTimestamp()), data.getAggregateIdentifier(), event.getEventNumber(), data.getPayload()
+            .getData(), new MetaData(data.getMetaData()));
+
    }
 }

@@ -49,8 +49,7 @@ public class EsWriter {
             LOGGER.info("Executing request " + post.getRequestLine());
             final CloseableHttpResponse response = httpclient.execute(post);
             try {
-               if (!(HttpStatus.SC_CREATED == response.getStatusLine()
-                     .getStatusCode())) {
+               if (!(HttpStatus.SC_CREATED == response.getStatusLine().getStatusCode())) {
                   throw new RuntimeException("Could not save stream feed from url: " + url);
                }
             } finally {
@@ -77,8 +76,7 @@ public class EsWriter {
             LOGGER.info("Executing request " + delete.getRequestLine());
             final CloseableHttpResponse response = httpclient.execute(delete);
             try {
-               if (!(HttpStatus.SC_NO_CONTENT == response.getStatusLine()
-                     .getStatusCode())) {
+               if (!(HttpStatus.SC_NO_CONTENT == response.getStatusLine().getStatusCode())) {
                   throw new RuntimeException("Could not delete stream with url: " + url);
                }
             } finally {
