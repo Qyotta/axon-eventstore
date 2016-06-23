@@ -10,7 +10,8 @@ import org.junit.runners.Suite.SuiteClasses;
    EventReaderTest.class,
    DeleteStreamTest.class,
    EventWriterTest.class,
-   EventStoreClientTest.class
+   EventStreamTest.class,
+   EventStreamReaderTest.class
 })
 //@formatter:on
 public class AllTests {

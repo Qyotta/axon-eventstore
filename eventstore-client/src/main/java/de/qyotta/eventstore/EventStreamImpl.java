@@ -2,51 +2,87 @@ package de.qyotta.eventstore;
 
 import static de.qyotta.eventstore.model.Link.EDIT;
 import static de.qyotta.eventstore.model.Link.PREVIOUS;
+import static de.qyotta.eventstore.model.Link.SELF;
 
+import java.util.Date;
 import java.util.Deque;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.logging.Logger;
 
 import de.qyotta.eventstore.model.Entry;
 import de.qyotta.eventstore.model.EventResponse;
 import de.qyotta.eventstore.model.EventStreamFeed;
 import de.qyotta.eventstore.model.Link;
+import de.qyotta.eventstore.utils.EsUtils;
 
 public class EventStreamImpl implements EventStream {
+   private static final Logger LOGGER = Logger.getLogger(EventStreamImpl.class.getName());
+
+   public interface EntryMatchingStrategy {
+      boolean matches(final Entry e);
+   }
 
    private final EsContext context;
    private List<Link> currentLinks;
    private Deque<Entry> currentEntries;
    private EventResponse next;
+   private EventResponse previous;
+   private final String streamUrl;
 
-   public EventStreamImpl(final String streamUrl, EsContext context) {
+   /**
+    * Initialize this stream at the very beginning
+    */
+   public EventStreamImpl(final String streamUrl, final EsContext context) {
+      this.streamUrl = streamUrl;
       this.context = context;
-      final EventStreamFeed initialFeed = context.getReader()
-            .readStream(streamUrl);
+      loadFirstFeed();
+      loadNextEvent();
+   }
 
-      final Link last = find(Link.LAST, initialFeed.getLinks());
-      if (last == null) {
-         // we already loaded the first stream (there is only one)
-         setUpFeed(initialFeed);
-         return;
+   @Override
+   public void setAfterEventId(final String eventId) {
+      setTo(e -> e.getId()
+            .equals(eventId));
+      loadNextEvent();
+
+   }
+
+   @Override
+   public void setAfterTimestamp(final Date timestamp) {
+      final Entry entry = setTo(e -> timestamp.before(EsUtils.timestampOf(e)));
+      next = readEvent(entry);
+   }
+
+   private Entry setTo(final EntryMatchingStrategy matcher) {
+      loadFirstFeed();
+      while (true) {
+         final Entry e = pollNextEntry();
+         if (e == null) {
+            return null;
+         }
+         if (matcher.matches(e)) {
+            return e;
+         }
       }
-      loadFeed(last.getUri());
+   }
+
+   private Entry pollNextEntry() {
+      if (!currentEntries.isEmpty()) {
+         return currentEntries.pollLast();
+      }
+      loadNextFeed();
+      if (!currentEntries.isEmpty()) {
+         return currentEntries.pollLast();
+      }
+      return null;
    }
 
    private void loadFeed(final String feedUrl) {
       final EventStreamFeed feed = context.getReader()
             .readStream(feedUrl);
-      setUpFeed(feed);
-   }
-
-   private void setUpFeed(final EventStreamFeed feed) {
       currentLinks = feed.getLinks();
       currentEntries = new LinkedList<>(feed.getEntries());
-      if (!currentEntries.isEmpty()) {
-         loadNextEvent();
-      } else {
-         next = null;
-      }
    }
 
    /*
@@ -72,20 +108,27 @@ public class EventStreamImpl implements EventStream {
       return result;
    }
 
-   /**
-    * @return the next event in the stream or null if there are no more
-    */
    private void loadNextEvent() {
+      previous = next;
       if (!currentEntries.isEmpty()) {
          next = readEvent(currentEntries.pollLast());
          return;
       }
-      final Link previous = find(PREVIOUS, currentLinks);
-      if (previous != null) {
-         loadFeed(previous.getUri());
+
+      if (loadNextFeed() && !currentEntries.isEmpty()) {
+         next = readEvent(currentEntries.pollLast());
          return;
       }
       next = null; // no more events
+   }
+
+   private boolean loadNextFeed() {
+      final Link previousLink = find(PREVIOUS, currentLinks);
+      if (previousLink != null) {
+         loadFeed(previousLink.getUri());
+         return true;
+      }
+      return false;
    }
 
    /*
@@ -98,9 +141,22 @@ public class EventStreamImpl implements EventStream {
       return next;
    }
 
-   private EventResponse readEvent(Entry entry) {
-      return context.getReader()
-            .readEvent(find(EDIT, entry.getLinks()).getUri());
+   @SuppressWarnings("nls")
+   private EventResponse readEvent(final Entry entry) {
+      if (entry == null) {
+         LOGGER.warning("No more events");
+         return null;
+      }
+      final Link find = find(EDIT, entry.getLinks());
+      if (find == null) {
+         LOGGER.warning("No more events");
+         return null;
+      }
+      final EventResponse event = context.getReader()
+            .readEvent(find.getUri());
+      LOGGER.warning("Loaded event with number: " + event.getContent()
+            .getEventNumber());
+      return event;
    }
 
    private Link find(final String relation, final List<Link> links) {
@@ -111,4 +167,37 @@ public class EventStreamImpl implements EventStream {
       }
       return null;
    }
+
+   private void loadFirstFeed() {
+      loadFeed(streamUrl);
+      final Link last = find(Link.LAST, currentLinks);
+      if (last != null) {
+         loadFeed(last.getUri());
+         return;
+      }
+   }
+
+   @Override
+   public void loadNext() {
+      if (hasNext()) {
+         return;
+      }
+      // reload the current feed
+      loadFeed(find(SELF, currentLinks).getUri());
+      if (!currentEntries.isEmpty()) {
+         if (previous == null) {
+            next = readEvent(currentEntries.pollLast());
+            return;
+         }
+         while (!currentEntries.isEmpty()) {
+            final Entry current = currentEntries.pollLast();
+            if (EsUtils.getEventNumber(current) > previous.getContent()
+                  .getEventNumber()) {
+               next = readEvent(current);
+               return;
+            }
+         }
+      }
+   }
+
 }

@@ -10,6 +10,13 @@ import org.junit.BeforeClass;
 
 import com.jayway.restassured.RestAssured;
 
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.ToString;
+
 @SuppressWarnings("nls")
 public class AbstractEsTest {
    static {
@@ -17,7 +24,7 @@ public class AbstractEsTest {
             .getParent()
             .getHandlers()[0].setLevel(Level.WARNING);
    }
-   static final Logger LOGGER = Logger.getLogger(AbstractEsTest.class.getName());
+   private static final Logger LOGGER = Logger.getLogger(AbstractEsTest.class.getName());
    private static final int PORT = 2113;
    private static final String BASE_URL = "http://127.0.0.1";
    private static final String STREAMS = "/streams";
@@ -38,5 +45,14 @@ public class AbstractEsTest {
             .andReturn()
             .statusCode();
       LOGGER.warning("Deleting stream '" + streamUrl + "' returned status code: " + statusCode);
+   }
+
+   @Getter
+   @ToString
+   @EqualsAndHashCode
+   @NoArgsConstructor(access = AccessLevel.PUBLIC)
+   @AllArgsConstructor(access = AccessLevel.PUBLIC)
+   public static final class MyEvent {
+      private String value;
    }
 }

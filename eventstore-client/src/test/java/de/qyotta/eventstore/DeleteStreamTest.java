@@ -9,6 +9,7 @@ import static de.qyotta.eventstore.utils.Constants.ES_EVENT_ID_HEADER;
 import static de.qyotta.eventstore.utils.Constants.ES_EVENT_TYPE_HEADER;
 
 import java.util.UUID;
+import java.util.logging.Logger;
 
 import org.junit.After;
 import org.junit.Before;
@@ -20,6 +21,7 @@ import de.qyotta.eventstore.utils.HttpClientFactory;
 
 @SuppressWarnings("nls")
 public class DeleteStreamTest extends AbstractEsTest {
+   private static final Logger LOGGER = Logger.getLogger(DeleteStreamTest.class.getName());
    private EsWriter writer;
    private String streamUrl;
 

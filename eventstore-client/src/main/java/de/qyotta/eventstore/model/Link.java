@@ -18,8 +18,10 @@ import lombok.ToString;
 @AllArgsConstructor(access = AccessLevel.PUBLIC)
 @SuppressWarnings("nls")
 public class Link {
+   public static final String SELF = "self";
    public static final String LAST = "last";
    public static final String PREVIOUS = "previous";
+   public static final String NEXT = "next";
    public static final String EDIT = "edit";
    private String uri;
    private String relation;

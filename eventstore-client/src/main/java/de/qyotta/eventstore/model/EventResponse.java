@@ -17,5 +17,8 @@ import lombok.ToString;
 @NoArgsConstructor(access = AccessLevel.PUBLIC)
 @AllArgsConstructor(access = AccessLevel.PUBLIC)
 public class EventResponse {
+   private String title;
+   private String id;
+   private String updated;
    private Event content;
 }
