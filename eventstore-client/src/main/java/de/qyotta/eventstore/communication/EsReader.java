@@ -6,13 +6,13 @@ import static de.qyotta.eventstore.utils.Constants.ACCEPT_HEADER;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.logging.Logger;
 
 import org.apache.http.HttpStatus;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.util.EntityUtils;
+import org.apache.log4j.Logger;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -61,14 +61,16 @@ public class EsReader {
          LOGGER.info("Executing request " + httpget.getRequestLine());
          final CloseableHttpResponse response = httpclient.execute(httpget);
          try {
-            final int statusCode = response.getStatusLine().getStatusCode();
+            final int statusCode = response.getStatusLine()
+                  .getStatusCode();
             if (HttpStatus.SC_NOT_FOUND == statusCode || HttpStatus.SC_NO_CONTENT == statusCode) {
                throw new EventStreamNotFoundException();
             }
             if (!(HttpStatus.SC_OK == statusCode)) {
                throw new RuntimeException("Could not load stream feed from url: " + url);
             }
-            final T result = gson.fromJson(new BufferedReader(new InputStreamReader(response.getEntity().getContent())), type);
+            final T result = gson.fromJson(new BufferedReader(new InputStreamReader(response.getEntity()
+                  .getContent())), type);
             EntityUtils.consume(response.getEntity());
             return result;
          } finally {

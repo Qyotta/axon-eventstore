@@ -55,12 +55,16 @@ public abstract class AbstractIntegrationTest {
    @Autowired
    protected EventStore eventStore;
    private EventStoreClient client;
+   protected EventStoreSettings settings;
 
    @Before
    public final void initTest() {
-      myAggregateId = UUID.randomUUID().toString();
+      myAggregateId = UUID.randomUUID()
+            .toString();
       eventBus.subscribe(EVENT_LISTENER);
-      client = new EventStoreClient(EventStoreSettings.withDefaults().build());
+      settings = EventStoreSettings.withDefaults()
+            .build();
+      client = new EventStoreClient(settings);
    }
 
    protected <T extends AbstractAnnotatedAggregateRoot<?>> void deleteEventStream(final Class<T> classOfT, final String aggregateId) {
@@ -91,12 +95,14 @@ public abstract class AbstractIntegrationTest {
          }
          final List<Object> eventsOfType = new LinkedList<>();
          for (final Object actual : actualEvents) {
-            if (actual.getClass().equals(expectedEvent.getClass())) {
+            if (actual.getClass()
+                  .equals(expectedEvent.getClass())) {
                eventsOfType.add(actual);
             }
          }
          if (eventsOfType.isEmpty()) {
-            fail("Expected an event of type: " + expectedEvent.getClass().getName() + " but none was published.");
+            fail("Expected an event of type: " + expectedEvent.getClass()
+                  .getName() + " but none was published.");
          }
          fail("Expected event: " + expectedEvent + ". Found the following events of the same type but none matched: " + eventsOfType);
       }

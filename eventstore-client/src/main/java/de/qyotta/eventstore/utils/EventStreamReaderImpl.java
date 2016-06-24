@@ -4,8 +4,8 @@ import java.util.Date;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
+import org.apache.log4j.Logger;
 
 import de.qyotta.eventstore.EsContext;
 import de.qyotta.eventstore.EventStream;
@@ -33,7 +33,7 @@ public class EventStreamReaderImpl implements EventStreamReader {
    private EventStreamReaderErrorCallback errorCallback = new EventStreamReaderErrorCallback() {
       @Override
       public void onError(String errorMessage, Throwable cause) {
-         LOGGER.log(Level.SEVERE, errorMessage, cause);
+         LOGGER.error(errorMessage, cause);
          throw new EventStreamReaderException(cause);
       }
    };
@@ -47,8 +47,8 @@ public class EventStreamReaderImpl implements EventStreamReader {
    }
 
    /**
-    * Creates a new {@link EventStreamReaderImpl} that reads the given stream in intervals. Catch up is scheduled at the given interval. If the given interval is 0 or negative it will not be scheduled but
-    * can be invoked manually.
+    * Creates a new {@link EventStreamReaderImpl} that reads the given stream in intervals. Catch up is scheduled at the given interval. If the given interval is 0 or negative it will not be scheduled
+    * but can be invoked manually.
     *
     * @param streamurl
     * @param context
@@ -62,7 +62,8 @@ public class EventStreamReaderImpl implements EventStreamReader {
       this.callback = callback;
    }
 
-   public EventStreamReaderImpl(final String streamurl, final EsContext context, final int intervalMillis, final EventStreamReaderCallback callback, final EventStreamReaderErrorCallback errorCallback) {
+   public EventStreamReaderImpl(final String streamurl, final EsContext context, final int intervalMillis, final EventStreamReaderCallback callback,
+         final EventStreamReaderErrorCallback errorCallback) {
       this.streamurl = streamurl;
       this.context = context;
       this.intervalMillis = intervalMillis;
@@ -70,7 +71,9 @@ public class EventStreamReaderImpl implements EventStreamReader {
       this.errorCallback = errorCallback;
    }
 
-   /* (non-Javadoc)
+   /*
+    * (non-Javadoc)
+    *
     * @see de.qyotta.eventstore.utils.EventStreamReader#start(java.lang.String)
     */
    @Override
@@ -85,7 +88,9 @@ public class EventStreamReaderImpl implements EventStreamReader {
       }
    }
 
-   /* (non-Javadoc)
+   /*
+    * (non-Javadoc)
+    *
     * @see de.qyotta.eventstore.utils.EventStreamReader#start()
     */
    @Override
@@ -99,7 +104,9 @@ public class EventStreamReaderImpl implements EventStreamReader {
       }
    }
 
-   /* (non-Javadoc)
+   /*
+    * (non-Javadoc)
+    *
     * @see de.qyotta.eventstore.utils.EventStreamReader#start(java.util.Date)
     */
    @Override
@@ -114,14 +121,19 @@ public class EventStreamReaderImpl implements EventStreamReader {
       }
    }
 
-   /* (non-Javadoc)
+   /*
+    * (non-Javadoc)
+    *
     * @see de.qyotta.eventstore.utils.EventStreamReader#catchUp()
     */
    @Override
    public void catchUp() {
       if (currentTask != null) {
          currentTask.run();
+         return;
       }
+      // if start was never called just start, wich is equivalent to catching up from the beginning
+      start();
    }
 
    private void catchUp(final EventStream eventStream) {
@@ -132,7 +144,7 @@ public class EventStreamReaderImpl implements EventStreamReader {
          if (isCatchingUp) {
             return;
          }
-         LOGGER.warning("Catching up.");
+         LOGGER.warn("Catching up.");
          isCatchingUp = true;
          eventStream.loadNext();
          while (eventStream.hasNext()) {
@@ -162,7 +174,9 @@ public class EventStreamReaderImpl implements EventStreamReader {
       }
    }
 
-   /* (non-Javadoc)
+   /*
+    * (non-Javadoc)
+    *
     * @see de.qyotta.eventstore.utils.EventStreamReader#isPaused()
     */
    @Override
@@ -170,7 +184,9 @@ public class EventStreamReaderImpl implements EventStreamReader {
       return paused;
    }
 
-   /* (non-Javadoc)
+   /*
+    * (non-Javadoc)
+    *
     * @see de.qyotta.eventstore.utils.EventStreamReader#setPaused(boolean)
     */
    @Override
@@ -178,7 +194,9 @@ public class EventStreamReaderImpl implements EventStreamReader {
       this.paused = paused;
    }
 
-   /* (non-Javadoc)
+   /*
+    * (non-Javadoc)
+    *
     * @see de.qyotta.eventstore.utils.EventStreamReader#setCatchUpTerminationPeriodMillis(long)
     */
    @Override

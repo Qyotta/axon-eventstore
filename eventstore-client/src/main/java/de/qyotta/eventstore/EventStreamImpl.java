@@ -8,7 +8,8 @@ import java.util.Date;
 import java.util.Deque;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.logging.Logger;
+
+import org.apache.log4j.Logger;
 
 import de.qyotta.eventstore.model.Entry;
 import de.qyotta.eventstore.model.EventResponse;
@@ -144,17 +145,17 @@ public class EventStreamImpl implements EventStream {
    @SuppressWarnings("nls")
    private EventResponse readEvent(final Entry entry) {
       if (entry == null) {
-         LOGGER.warning("No more events");
+         LOGGER.info("No more events");
          return null;
       }
       final Link find = find(EDIT, entry.getLinks());
       if (find == null) {
-         LOGGER.warning("No more events");
+         LOGGER.info("No more events");
          return null;
       }
       final EventResponse event = context.getReader()
             .readEvent(find.getUri());
-      LOGGER.warning("Loaded event with number: " + event.getContent()
+      LOGGER.info("Loaded event with number: " + event.getContent()
             .getEventNumber());
       return event;
    }

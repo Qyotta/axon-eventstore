@@ -3,9 +3,10 @@ package de.qyotta.eventstore;
 import static com.jayway.restassured.RestAssured.given;
 import static de.qyotta.eventstore.utils.Constants.ES_HARD_DELETE_HEADER;
 
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
+import org.apache.log4j.ConsoleAppender;
+import org.apache.log4j.Level;
+import org.apache.log4j.Logger;
+import org.apache.log4j.PatternLayout;
 import org.junit.BeforeClass;
 
 import com.jayway.restassured.RestAssured;
@@ -20,9 +21,9 @@ import lombok.ToString;
 @SuppressWarnings("nls")
 public class AbstractEsTest {
    static {
-      Logger.getGlobal()
-            .getParent()
-            .getHandlers()[0].setLevel(Level.WARNING);
+      final Logger rootLogger = Logger.getRootLogger();
+      rootLogger.setLevel(Level.WARN);
+      rootLogger.addAppender(new ConsoleAppender(new PatternLayout("%-6r [%p] %c - %m%n")));
    }
    private static final Logger LOGGER = Logger.getLogger(AbstractEsTest.class.getName());
    private static final int PORT = 2113;
@@ -44,7 +45,7 @@ public class AbstractEsTest {
             .delete(streamUrl)
             .andReturn()
             .statusCode();
-      LOGGER.warning("Deleting stream '" + streamUrl + "' returned status code: " + statusCode);
+      LOGGER.warn("Deleting stream '" + streamUrl + "' returned status code: " + statusCode);
    }
 
    @Getter

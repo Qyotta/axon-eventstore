@@ -10,10 +10,6 @@
   </parent>
   <properties>
     <spring.version>4.2.6.RELEASE</spring.version>
-    <junit.version>4.11</junit.version>
-    <hamcrest.version>1.3</hamcrest.version>
-    <awaitility.version>1.7.0</awaitility.version>
-    <log4j.version>1.2.17</log4j.version>
     <jackson.version>2.6.5</jackson.version>
     <jackson.annotations.version>2.6.0</jackson.annotations.version>
     <jackson.databind.version>2.6.5</jackson.databind.version>
@@ -23,13 +19,6 @@
       <groupId>de.qyotta.eventstore</groupId>
       <artifactId>axon-eventstore</artifactId>
       <version>0.1-SNAPSHOT</version>
-    </dependency>
-    <!-- awaitility (async testing) -->
-    <dependency>
-      <groupId>com.jayway.awaitility</groupId>
-      <artifactId>awaitility</artifactId>
-      <version>${awaitility.version}</version>
-      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.springframework</groupId>
@@ -46,24 +35,6 @@
       <groupId>org.springframework</groupId>
       <artifactId>spring-test</artifactId>
       <version>${spring.version}</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
-      <version>${junit.version}</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.hamcrest</groupId>
-      <artifactId>hamcrest-all</artifactId>
-      <version>${hamcrest.version}</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>log4j</groupId>
-      <artifactId>log4j</artifactId>
-      <version>${log4j.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>

@@ -16,8 +16,14 @@ import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import de.qyotta.eventstore.EventStoreSettings;
 import net.sf.ehcache.Cache;
 import net.sf.ehcache.CacheManager;
+import net.sf.ehcache.config.CacheConfiguration;
+import net.sf.ehcache.config.CacheConfiguration.TransactionalMode;
+import net.sf.ehcache.store.MemoryStoreEvictionPolicy.MemoryStoreEvictionPolicyEnum;
 
+@SuppressWarnings("nls")
 public class HttpClientFactory {
+
+   private static final String HTTP_CLIENT_CACHE = "httpClientCache";
 
    public static CloseableHttpClient httpClient(final EventStoreSettings settings) {
       if (settings.isCacheResponses()) {
@@ -37,9 +43,10 @@ public class HttpClientFactory {
    private static CloseableHttpClient newClosableCachingHttpClient(EventStoreSettings settings) {
       final CacheConfig cacheConfig = CacheConfig.custom()
             .build();
-      final CacheManager cm = CacheManager.newInstance();
-      final Cache cache = cm.getCache("httpClientCache"); //$NON-NLS-1$
-
+      final Cache cache = cacheManager().getCache(HTTP_CLIENT_CACHE);
+      if (cache == null) {
+         throw new RuntimeException("'cache' is null. Invalid cache configuration!");
+      }
       final EhcacheHttpCacheStorage ehcacheHttpCacheStorage = new EhcacheHttpCacheStorage(cache, cacheConfig);
       return CachingHttpClientBuilder.create()
             .setHttpCacheStorage(ehcacheHttpCacheStorage)
@@ -67,6 +74,20 @@ public class HttpClientFactory {
       final CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
       credentialsProvider.setCredentials(new AuthScope(null, -1), new UsernamePasswordCredentials(settings.getUserName(), settings.getPassword()));
       return credentialsProvider;
+   }
+
+   private static CacheManager cacheManager() {
+      final CacheConfiguration cacheConfiguration = new CacheConfiguration();
+      cacheConfiguration.setName(HTTP_CLIENT_CACHE);
+      cacheConfiguration.setMemoryStoreEvictionPolicy(MemoryStoreEvictionPolicyEnum.LRU.name());
+      cacheConfiguration.setMaxEntriesLocalHeap(1000);
+      cacheConfiguration.setMaxBytesLocalDisk(524288000L);
+      cacheConfiguration.setEternal(true); // elements never expire
+      cacheConfiguration.setTransactionalMode(TransactionalMode.OFF.name());
+      final net.sf.ehcache.config.Configuration config = new net.sf.ehcache.config.Configuration();
+      config.addCache(cacheConfiguration);
+
+      return net.sf.ehcache.CacheManager.newInstance(config);
    }
 
 }

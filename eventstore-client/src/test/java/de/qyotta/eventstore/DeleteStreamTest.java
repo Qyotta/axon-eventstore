@@ -9,8 +9,8 @@ import static de.qyotta.eventstore.utils.Constants.ES_EVENT_ID_HEADER;
 import static de.qyotta.eventstore.utils.Constants.ES_EVENT_TYPE_HEADER;
 
 import java.util.UUID;
-import java.util.logging.Logger;
 
+import org.apache.log4j.Logger;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -70,6 +70,6 @@ public class DeleteStreamTest extends AbstractEsTest {
             .andReturn()
             .statusCode();
       assert statusCode == 201; // just to make sure
-      LOGGER.warning("Creating stream '" + streamUrl + "' returned status code: " + statusCode);
+      LOGGER.warn("Creating stream '" + streamUrl + "' returned status code: " + statusCode);
    }
 }
