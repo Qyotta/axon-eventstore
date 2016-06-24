@@ -1,4 +1,4 @@
-package de.qyotta.axonframework.eventstore;
+package de.qyotta.axonframework.eventstore.utils;
 
 import java.util.Map;
 
@@ -21,7 +21,7 @@ import lombok.experimental.FieldDefaults;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @NoArgsConstructor(access = AccessLevel.PUBLIC)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
-class SerializableDomainEvent {
+public class SerializableDomainEvent {
    private Object aggregateIdentifier;
    private String timestamp;
    private Map<String, ?> metaData;

@@ -29,6 +29,7 @@ public class EventStoreSettings {
    private static final String DEFAULT_REALM = "ES";
    private static final String DEFAULT_HOST = "http://127.0.0.1:2113";
    private static final int DEFAULT_CONNECTION_TIMEOUT_MILLIS = 2000;
+   private static final int DEFAULT_SOCKET_TIMEOUT_MILLIS = 2000;
 
    private String host;
    private String realm;
@@ -36,8 +37,10 @@ public class EventStoreSettings {
    private String userName;
    private String password;
    private Integer connectionTimeoutMillis;
+   private Integer socketTimeoutMillis;
    private JsonDeserializer<SerializableEventData> eventDataDeserializer;
    private JsonSerializer<SerializableEventData> eventDataSerializer;
+   private boolean cacheResponses;
 
    public static EventStoreSettings.EventStoreSettingsBuilder withDefaults() {
       return EventStoreSettings.builder()
@@ -47,7 +50,10 @@ public class EventStoreSettings {
             .userName(DEFAULT_USERNAME)
             .password(DEFAULT_PASSWORD)
             .connectionTimeoutMillis(DEFAULT_CONNECTION_TIMEOUT_MILLIS)
+            .socketTimeoutMillis(DEFAULT_SOCKET_TIMEOUT_MILLIS)
             .eventDataDeserializer(new EventDataSerializer())
-            .eventDataSerializer(new EventDataSerializer());
+            .eventDataSerializer(new EventDataSerializer())
+            .cacheResponses(true);
    }
+
 }

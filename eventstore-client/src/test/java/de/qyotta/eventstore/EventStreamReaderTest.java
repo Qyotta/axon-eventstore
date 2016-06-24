@@ -30,7 +30,7 @@ import de.qyotta.eventstore.model.Event;
 import de.qyotta.eventstore.model.EventResponse;
 import de.qyotta.eventstore.model.SerializableEventData;
 import de.qyotta.eventstore.utils.EventStreamReader;
-import de.qyotta.eventstore.utils.EventStreamReader.EventStreamReaderCallback;
+import de.qyotta.eventstore.utils.EventStreamReaderImpl.EventStreamReaderCallback;
 
 @SuppressWarnings("nls")
 public class EventStreamReaderTest extends AbstractEsTest {

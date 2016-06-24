@@ -29,9 +29,9 @@ public class EventWriterTest extends AbstractEsTest {
 
    @Before
    public void setUp() {
-      writer = new EsWriter(HttpClientFactory.newClosableHttpClient(EventStoreSettings.withDefaults()
+      writer = new EsWriter(HttpClientFactory.httpClient(EventStoreSettings.withDefaults()
             .build()), new EventDataSerializer());
-      reader = new EsReader(HttpClientFactory.newClosableHttpClient(EventStoreSettings.withDefaults()
+      reader = new EsReader(HttpClientFactory.httpClient(EventStoreSettings.withDefaults()
             .build()), new EventDataSerializer());
       streamUrl = BASE_STREAMS_URL + EventWriterTest.class.getSimpleName() + "-" + UUID.randomUUID();
    }

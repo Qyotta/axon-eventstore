@@ -15,7 +15,8 @@ public class EsContext {
 
    public EsContext(final EventStoreSettings settings) {
       this.settings = settings;
-      httpclient = HttpClientFactory.newClosableHttpClient(settings);
+      httpclient = HttpClientFactory.httpClient(settings);
+
       reader = new EsReader(httpclient, settings.getEventDataDeserializer());
       writer = new EsWriter(httpclient, settings.getEventDataSerializer());
    }

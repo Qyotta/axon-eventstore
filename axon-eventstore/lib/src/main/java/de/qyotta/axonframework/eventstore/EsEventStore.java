@@ -1,6 +1,7 @@
 package de.qyotta.axonframework.eventstore;
 
 import static de.qyotta.axonframework.eventstore.utils.EsEventStoreUtils.getStreamName;
+
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -12,13 +13,15 @@ import org.axonframework.domain.DomainEventStream;
 import org.axonframework.eventstore.EventStore;
 import org.axonframework.eventstore.EventStreamNotFoundException;
 
+import de.qyotta.axonframework.eventstore.utils.Constants;
+import de.qyotta.axonframework.eventstore.utils.SerializableDomainEvent;
 import de.qyotta.eventstore.EventStoreClient;
 import de.qyotta.eventstore.EventStoreSettings;
 import de.qyotta.eventstore.EventStream;
 import de.qyotta.eventstore.model.Event;
 import de.qyotta.eventstore.model.SerializableEventData;
 
-@SuppressWarnings({"rawtypes"})
+@SuppressWarnings({ "rawtypes" })
 public class EsEventStore implements EventStore {
    private final EventStoreClient client;
 
@@ -52,13 +55,13 @@ public class EsEventStore implements EventStore {
          if (!stream.hasNext()) {
             throw new EventStreamNotFoundException(type, identifier);
          }
-      } catch (de.qyotta.eventstore.model.EventStreamNotFoundException e) {
+      } catch (final de.qyotta.eventstore.model.EventStreamNotFoundException e) {
          throw new EventStreamNotFoundException(type, identifier);
       }
       return stream;
    }
 
-   private Event toEvent(DomainEventMessage message) {
+   private Event toEvent(final DomainEventMessage message) {
       final HashMap<String, Object> metaData = new HashMap<>();
       for (final Entry<String, Object> entry : message.getMetaData()
             .entrySet()) {
@@ -66,8 +69,7 @@ public class EsEventStore implements EventStore {
       }
       return Event.builder()
             .eventId(message.getIdentifier())
-            .eventType(message.getPayloadType()
-                  .getSimpleName())
+            .eventType(Constants.DOMAIN_EVENT_TYPE)
             .data(SerializableEventData.of(SerializableDomainEvent.builder()
                   .aggregateIdentifier(message.getAggregateIdentifier())
                   .payload(SerializableEventData.of(message.getPayload()))

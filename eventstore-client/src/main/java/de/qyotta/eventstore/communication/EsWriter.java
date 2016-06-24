@@ -29,7 +29,7 @@ public class EsWriter {
    private final Gson gson;
    private final CloseableHttpClient httpclient;
 
-   public EsWriter(final CloseableHttpClient httpclient, JsonSerializer<SerializableEventData> eventDataSerializer) {
+   public EsWriter(final CloseableHttpClient httpclient, final JsonSerializer<SerializableEventData> eventDataSerializer) {
       this.httpclient = httpclient;
       final GsonBuilder gsonBuilder = new GsonBuilder();
       gsonBuilder.registerTypeAdapter(SerializableEventData.class, eventDataSerializer);
@@ -49,7 +49,8 @@ public class EsWriter {
             LOGGER.info("Executing request " + post.getRequestLine());
             final CloseableHttpResponse response = httpclient.execute(post);
             try {
-               if (!(HttpStatus.SC_CREATED == response.getStatusLine().getStatusCode())) {
+               if (!(HttpStatus.SC_CREATED == response.getStatusLine()
+                     .getStatusCode())) {
                   throw new RuntimeException("Could not save stream feed from url: " + url);
                }
             } finally {
@@ -76,7 +77,8 @@ public class EsWriter {
             LOGGER.info("Executing request " + delete.getRequestLine());
             final CloseableHttpResponse response = httpclient.execute(delete);
             try {
-               if (!(HttpStatus.SC_NO_CONTENT == response.getStatusLine().getStatusCode())) {
+               if (!(HttpStatus.SC_NO_CONTENT == response.getStatusLine()
+                     .getStatusCode())) {
                   throw new RuntimeException("Could not delete stream with url: " + url);
                }
             } finally {

@@ -26,6 +26,7 @@ import de.qyotta.axonframework.eventstore.domain.ChangeTestAggregate;
 import de.qyotta.axonframework.eventstore.domain.CreateTestAggregate;
 import de.qyotta.axonframework.eventstore.domain.TestAggregate;
 
+@SuppressWarnings("nls")
 public class EventStoreIntegrationTest extends AbstractIntegrationTest {
 
    @Autowired
@@ -67,7 +68,8 @@ public class EventStoreIntegrationTest extends AbstractIntegrationTest {
       commandGateway.sendAndWait(command.andMetaData(expected));
       final DomainEventStream readEvents = eventStore.readEvents(TestAggregate.class.getSimpleName(), myAggregateId);
       assertTrue(readEvents.hasNext());
-      final MetaData actual = readEvents.next().getMetaData();
+      final MetaData actual = readEvents.next()
+            .getMetaData();
       assertThat(actual.get("Test"), is(notNullValue()));
       assertThat(actual.get("Test"), is(equalTo("Test")));
    }

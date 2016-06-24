@@ -19,7 +19,7 @@ public class EventReaderTest extends AbstractEsTest {
 
    @Before
    public void setUp() {
-      reader = new EsReader(HttpClientFactory.newClosableHttpClient(EventStoreSettings.withDefaults()
+      reader = new EsReader(HttpClientFactory.httpClient(EventStoreSettings.withDefaults()
             .build()), new EventDataSerializer());
    }
 

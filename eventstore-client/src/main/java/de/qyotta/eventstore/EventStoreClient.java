@@ -6,7 +6,8 @@ import java.util.Collection;
 
 import de.qyotta.eventstore.model.Event;
 import de.qyotta.eventstore.utils.EventStreamReader;
-import de.qyotta.eventstore.utils.EventStreamReader.EventStreamReaderCallback;
+import de.qyotta.eventstore.utils.EventStreamReaderImpl;
+import de.qyotta.eventstore.utils.EventStreamReaderImpl.EventStreamReaderCallback;
 
 public class EventStoreClient {
    private final EsContext context;
@@ -16,7 +17,7 @@ public class EventStoreClient {
    }
 
    /**
-    * Creates a new {@link EventStreamReader}. Catch up is scheduled at the given interval. If the given interval is 0 or negative it will not be scheduled but can be invoked manually.
+    * Creates a new {@link EventStreamReaderImpl}. Catch up is scheduled at the given interval. If the given interval is 0 or negative it will not be scheduled but can be invoked manually.
     *
     * @param streamName
     * @param intervalMillis
@@ -24,7 +25,7 @@ public class EventStoreClient {
     * @return
     */
    public EventStreamReader newEventStreamReader(final String streamName, final int intervalMillis, final EventStreamReaderCallback callback) {
-      return new EventStreamReader(streamUrlForName(streamName), context, intervalMillis, callback);
+      return new EventStreamReaderImpl(streamUrlForName(streamName), context, intervalMillis, callback);
    }
 
    public EventStream readEvents(final String streamName) {

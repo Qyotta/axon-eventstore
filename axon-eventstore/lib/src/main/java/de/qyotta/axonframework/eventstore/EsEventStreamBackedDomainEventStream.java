@@ -2,14 +2,11 @@ package de.qyotta.axonframework.eventstore;
 
 import org.axonframework.domain.DomainEventMessage;
 import org.axonframework.domain.DomainEventStream;
-import org.axonframework.domain.GenericDomainEventMessage;
-import org.axonframework.domain.MetaData;
-import org.joda.time.DateTime;
 
+import de.qyotta.axonframework.eventstore.utils.EsEventStoreUtils;
 import de.qyotta.eventstore.EventStream;
-import de.qyotta.eventstore.model.Event;
 
-@SuppressWarnings({ "nls", "rawtypes" })
+@SuppressWarnings({ "rawtypes" })
 public class EsEventStreamBackedDomainEventStream implements DomainEventStream {
 
    private final EventStream eventStream;
@@ -25,26 +22,14 @@ public class EsEventStreamBackedDomainEventStream implements DomainEventStream {
 
    @Override
    public DomainEventMessage next() {
-      return domainEventMessageOf(eventStream.next()
+      return EsEventStoreUtils.domainEventMessageOf(eventStream.next()
             .getContent());
    }
 
    @Override
    public DomainEventMessage peek() {
-      return domainEventMessageOf(eventStream.peek()
+      return EsEventStoreUtils.domainEventMessageOf(eventStream.peek()
             .getContent());
    }
 
-   @SuppressWarnings("unchecked")
-   private DomainEventMessage domainEventMessageOf(final Event event) {
-      if (!(event.getData()
-            .getData() instanceof SerializableDomainEvent)) {
-         throw new IllegalArgumentException("Event was not an instance of '" + SerializableDomainEvent.class.getName());
-      }
-      final SerializableDomainEvent data = (SerializableDomainEvent) event.getData()
-            .getData();
-      return new GenericDomainEventMessage(event.getEventId(), new DateTime(data.getTimestamp()), data.getAggregateIdentifier(), event.getEventNumber(), data.getPayload()
-            .getData(), new MetaData(data.getMetaData()));
-
-   }
 }
