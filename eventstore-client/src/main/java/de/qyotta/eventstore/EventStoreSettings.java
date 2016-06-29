@@ -40,6 +40,7 @@ public class EventStoreSettings {
    private Integer socketTimeoutMillis;
    private JsonDeserializer<SerializableEventData> eventDataDeserializer;
    private JsonSerializer<SerializableEventData> eventDataSerializer;
+   private String cacheDirectory;
    private boolean cacheResponses;
 
    public static EventStoreSettings.EventStoreSettingsBuilder withDefaults() {

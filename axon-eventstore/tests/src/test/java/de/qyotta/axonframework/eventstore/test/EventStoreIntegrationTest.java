@@ -24,7 +24,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import de.qyotta.axonframework.eventstore.config.AbstractIntegrationTest;
 import de.qyotta.axonframework.eventstore.domain.ChangeTestAggregate;
 import de.qyotta.axonframework.eventstore.domain.CreateTestAggregate;
-import de.qyotta.axonframework.eventstore.domain.TestAggregate;
+import de.qyotta.axonframework.eventstore.domain.MyTestAggregate;
 
 @SuppressWarnings("nls")
 public class EventStoreIntegrationTest extends AbstractIntegrationTest {
@@ -34,7 +34,7 @@ public class EventStoreIntegrationTest extends AbstractIntegrationTest {
 
    @After
    public final void tearDown() {
-      deleteEventStream(TestAggregate.class, myAggregateId);
+      deleteEventStream(MyTestAggregate.class, myAggregateId);
    }
 
    @Test
@@ -66,7 +66,7 @@ public class EventStoreIntegrationTest extends AbstractIntegrationTest {
       expected.put("Test", "Test");
       final GenericCommandMessage<CreateTestAggregate> command = new GenericCommandMessage<CreateTestAggregate>(new CreateTestAggregate(myAggregateId));
       commandGateway.sendAndWait(command.andMetaData(expected));
-      final DomainEventStream readEvents = eventStore.readEvents(TestAggregate.class.getSimpleName(), myAggregateId);
+      final DomainEventStream readEvents = eventStore.readEvents(MyTestAggregate.class.getSimpleName(), myAggregateId);
       assertTrue(readEvents.hasNext());
       final MetaData actual = readEvents.next()
             .getMetaData();

@@ -18,6 +18,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonDeserializer;
 
+import de.qyotta.eventstore.model.EventDeletedException;
 import de.qyotta.eventstore.model.EventResponse;
 import de.qyotta.eventstore.model.EventStreamFeed;
 import de.qyotta.eventstore.model.EventStreamNotFoundException;
@@ -38,7 +39,7 @@ public class EsReader {
 
    public EventStreamFeed readStream(final String url) {
       try {
-         return load(url, EventStreamFeed.class);
+         return loadFeed(url);
       } catch (final IOException e) {
          throw new RuntimeException("Could not initialize EventStreamImpl from url: '" + url + "'.", e);
       }
@@ -46,14 +47,14 @@ public class EsReader {
 
    public EventResponse readEvent(String url) {
       try {
-         return load(url, EventResponse.class);
+         return loadEvent(url);
       } catch (final IOException e) {
          throw new RuntimeException("Could not load EventResponse from url: '" + url + "'.", e);
       }
 
    }
 
-   private <T> T load(final String url, Class<T> type) throws IOException {
+   private EventStreamFeed loadFeed(final String url) throws IOException {
       try {
          final HttpGet httpget = new HttpGet(url);
          httpget.addHeader(ACCEPT_HEADER, ACCEPT_EVENTSTORE_ATOM_JSON);
@@ -69,8 +70,36 @@ public class EsReader {
             if (!(HttpStatus.SC_OK == statusCode)) {
                throw new RuntimeException("Could not load stream feed from url: " + url);
             }
-            final T result = gson.fromJson(new BufferedReader(new InputStreamReader(response.getEntity()
-                  .getContent())), type);
+            final EventStreamFeed result = gson.fromJson(new BufferedReader(new InputStreamReader(response.getEntity()
+                  .getContent())), EventStreamFeed.class);
+            EntityUtils.consume(response.getEntity());
+            return result;
+         } finally {
+            response.close();
+         }
+      } finally {
+         httpclient.close();
+      }
+   }
+
+   private EventResponse loadEvent(final String url) throws IOException {
+      try {
+         final HttpGet httpget = new HttpGet(url);
+         httpget.addHeader(ACCEPT_HEADER, ACCEPT_EVENTSTORE_ATOM_JSON);
+
+         LOGGER.info("Executing request " + httpget.getRequestLine());
+         final CloseableHttpResponse response = httpclient.execute(httpget);
+         try {
+            final int statusCode = response.getStatusLine()
+                  .getStatusCode();
+            if (HttpStatus.SC_GONE == statusCode) {
+               throw new EventDeletedException();
+            }
+            if (!(HttpStatus.SC_OK == statusCode)) {
+               throw new RuntimeException("Could not load stream feed from url: " + url);
+            }
+            final EventResponse result = gson.fromJson(new BufferedReader(new InputStreamReader(response.getEntity()
+                  .getContent())), EventResponse.class);
             EntityUtils.consume(response.getEntity());
             return result;
          } finally {

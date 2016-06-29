@@ -9,7 +9,7 @@ import org.axonframework.eventsourcing.annotation.EventSourcingHandler;
 import lombok.NoArgsConstructor;
 
 @NoArgsConstructor
-public class TestAggregate extends AbstractAnnotatedAggregateRoot<String> {
+public class MyTestAggregate extends AbstractAnnotatedAggregateRoot<String> {
    private static final long serialVersionUID = 1L;
 
    @AggregateIdentifier
@@ -17,7 +17,7 @@ public class TestAggregate extends AbstractAnnotatedAggregateRoot<String> {
    private int numberofevents;
 
    @CommandHandler
-   public TestAggregate(final CreateTestAggregate command, final MetaData metaData) {
+   public MyTestAggregate(final CreateTestAggregate command, final MetaData metaData) {
       this.aggregateId = command.getAggregateId();
       apply(new TestAggregateCreated(command.getAggregateId()), metaData);
    }

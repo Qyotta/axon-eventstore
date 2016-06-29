@@ -35,7 +35,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 import de.qyotta.axonframework.eventstore.EsEventStore;
-import de.qyotta.axonframework.eventstore.domain.TestAggregate;
+import de.qyotta.axonframework.eventstore.domain.MyTestAggregate;
 import de.qyotta.eventstore.EventStoreSettings;
 
 @Configuration
@@ -52,19 +52,19 @@ public class TestConfiguration {
 
    @Bean(name = "testAggregateEventsourcingRepository")
    @Autowired
-   public EventSourcingRepository<TestAggregate> respository(final EventStore eventStore, final EventBus eventBus) {
-      final EventSourcingRepository<TestAggregate> repository = new EventSourcingRepository<>(TestAggregate.class, eventStore);
+   public EventSourcingRepository<MyTestAggregate> respository(final EventStore eventStore, final EventBus eventBus) {
+      final EventSourcingRepository<MyTestAggregate> repository = new EventSourcingRepository<>(MyTestAggregate.class, eventStore);
       repository.setEventBus(eventBus);
       return repository;
    }
 
    @Bean(name = "testAggregateCommandHandler")
    @Autowired
-   public AggregateAnnotationCommandHandler<TestAggregate> commandHandler(@Qualifier("localSegment") final CommandBus commandBus, final ParameterResolverFactory parameterResolverFactory,
-         @Qualifier("testAggregateEventsourcingRepository") final EventSourcingRepository<TestAggregate> respository) {
+   public AggregateAnnotationCommandHandler<MyTestAggregate> commandHandler(@Qualifier("localSegment") final CommandBus commandBus, final ParameterResolverFactory parameterResolverFactory,
+         @Qualifier("testAggregateEventsourcingRepository") final EventSourcingRepository<MyTestAggregate> respository) {
 
       final CommandTargetResolver commandTargetResolver = new AnnotationCommandTargetResolver();
-      final AggregateAnnotationCommandHandler<TestAggregate> commandHandler = new AggregateAnnotationCommandHandler<>(TestAggregate.class, respository, commandTargetResolver,
+      final AggregateAnnotationCommandHandler<MyTestAggregate> commandHandler = new AggregateAnnotationCommandHandler<>(MyTestAggregate.class, respository, commandTargetResolver,
             parameterResolverFactory);
 
       for (final String supportedCommand : commandHandler.supportedCommands()) {

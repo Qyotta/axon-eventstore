@@ -13,7 +13,6 @@ import org.axonframework.domain.DomainEventStream;
 import org.axonframework.eventstore.EventStore;
 import org.axonframework.eventstore.EventStreamNotFoundException;
 
-import de.qyotta.axonframework.eventstore.utils.Constants;
 import de.qyotta.axonframework.eventstore.utils.SerializableDomainEvent;
 import de.qyotta.eventstore.EventStoreClient;
 import de.qyotta.eventstore.EventStoreSettings;
@@ -69,7 +68,8 @@ public class EsEventStore implements EventStore {
       }
       return Event.builder()
             .eventId(message.getIdentifier())
-            .eventType(Constants.DOMAIN_EVENT_TYPE)
+            .eventType(message.getPayloadType()
+                  .getSimpleName())
             .data(SerializableEventData.of(SerializableDomainEvent.builder()
                   .aggregateIdentifier(message.getAggregateIdentifier())
                   .payload(SerializableEventData.of(message.getPayload()))

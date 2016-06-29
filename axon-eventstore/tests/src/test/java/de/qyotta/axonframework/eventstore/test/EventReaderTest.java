@@ -13,11 +13,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import de.qyotta.axonframework.eventstore.config.AbstractIntegrationTest;
 import de.qyotta.axonframework.eventstore.domain.ChangeTestAggregate;
 import de.qyotta.axonframework.eventstore.domain.CreateTestAggregate;
-import de.qyotta.axonframework.eventstore.domain.TestAggregate;
+import de.qyotta.axonframework.eventstore.domain.MyTestAggregate;
 import de.qyotta.axonframework.eventstore.utils.EsDomainEventReader;
 import de.qyotta.axonframework.eventstore.utils.EsDomainEventReader.EsDomainEventReaderCallback;
+import de.qyotta.axonframework.eventstore.utils.EsEventStoreUtils;
 
-@SuppressWarnings("nls")
 public class EventReaderTest extends AbstractIntegrationTest {
 
    @Autowired
@@ -26,12 +26,12 @@ public class EventReaderTest extends AbstractIntegrationTest {
 
    @Before
    public void setUp() {
-      reader = new EsDomainEventReader(settings, -1);
+      reader = new EsDomainEventReader(settings, EsEventStoreUtils.getStreamName(MyTestAggregate.class.getSimpleName(), myAggregateId), -1);
    }
 
    @After
    public final void tearDown() {
-      deleteEventStream(TestAggregate.class, myAggregateId);
+      deleteEventStream(MyTestAggregate.class, myAggregateId);
    }
 
    @Test

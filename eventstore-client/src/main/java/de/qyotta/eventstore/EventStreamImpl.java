@@ -12,6 +12,7 @@ import java.util.List;
 import org.apache.log4j.Logger;
 
 import de.qyotta.eventstore.model.Entry;
+import de.qyotta.eventstore.model.EventDeletedException;
 import de.qyotta.eventstore.model.EventResponse;
 import de.qyotta.eventstore.model.EventStreamFeed;
 import de.qyotta.eventstore.model.Link;
@@ -110,17 +111,21 @@ public class EventStreamImpl implements EventStream {
    }
 
    private void loadNextEvent() {
-      previous = next;
-      if (!currentEntries.isEmpty()) {
-         next = readEvent(currentEntries.pollLast());
-         return;
-      }
+      try {
+         previous = next;
+         if (!currentEntries.isEmpty()) {
+            next = readEvent(currentEntries.pollLast());
+            return;
+         }
 
-      if (loadNextFeed() && !currentEntries.isEmpty()) {
-         next = readEvent(currentEntries.pollLast());
-         return;
+         if (loadNextFeed() && !currentEntries.isEmpty()) {
+            next = readEvent(currentEntries.pollLast());
+            return;
+         }
+         next = null; // no more events
+      } catch (final EventDeletedException e) {
+         loadNextEvent();
       }
-      next = null; // no more events
    }
 
    private boolean loadNextFeed() {
