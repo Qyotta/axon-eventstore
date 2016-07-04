@@ -22,7 +22,6 @@ public class EsUtilsTest extends AbstractEsTest {
    static final Logger LOGGER = Logger.getLogger(EsUtilsTest.class.getName());
    private EsWriter writer;
    private EsReader reader;
-   private String streamUrl;
 
    @Before
    public void setUp() {
@@ -30,7 +29,6 @@ public class EsUtilsTest extends AbstractEsTest {
             .build()));
       reader = new EsReader(HttpClientFactory.httpClient(EventStoreSettings.withDefaults()
             .build()));
-      streamUrl = BASE_STREAMS_URL + EventWriterTest.class.getSimpleName() + "-" + UUID.randomUUID();
    }
 
    @After
@@ -45,8 +43,8 @@ public class EsUtilsTest extends AbstractEsTest {
                .eventId(UUID.randomUUID()
                      .toString())
                .eventType("Testtype")
-               .data("TEST")
-               .metadata("Test")
+               .data("{\"test\": \"test\"}")
+               .metadata("{\"test\": \"test\"}")
                .build();
          writer.appendEvent(streamUrl, expected);
       }

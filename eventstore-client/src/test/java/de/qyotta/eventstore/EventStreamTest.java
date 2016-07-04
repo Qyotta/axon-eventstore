@@ -9,7 +9,6 @@ import static org.junit.Assert.assertThat;
 import java.time.Instant;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.Map;
 import java.util.UUID;
 
 import org.exparity.hamcrest.date.DateMatchers;
@@ -25,10 +24,6 @@ import de.qyotta.eventstore.utils.EsUtils;
 
 @SuppressWarnings("nls")
 public class EventStreamTest extends AbstractEsTest {
-   private String streamName;
-   private EventStoreClient client;
-   private Map<String, Event> expectedEvents;
-   private String streamUrl;
    private int numberOfStoredEvents;
 
    @Before
@@ -39,22 +34,6 @@ public class EventStreamTest extends AbstractEsTest {
       streamName = EventStreamTest.class.getSimpleName() + "-" + UUID.randomUUID();
       streamUrl = BASE_STREAMS_URL + streamName;
       expectedEvents = new HashMap<>();
-   }
-
-   private void createEvents(int numberOfEvents) throws InterruptedException {
-      for (int i = 0; i < numberOfEvents; i++) {
-         final String eventUuid = UUID.randomUUID()
-               .toString();
-         final Event event = Event.builder()
-               .eventId(eventUuid)
-               .eventType("Testtype")
-               .data(new Gson().toJson(new MyEvent(UUID.randomUUID()
-                     .toString())))
-               .metadata(metaData())
-               .build();
-         expectedEvents.put(eventUuid, event);
-         client.appendEvent(streamName, event);
-      }
    }
 
    @After

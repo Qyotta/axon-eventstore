@@ -14,13 +14,10 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.invocation.InvocationOnMock;
@@ -35,35 +32,6 @@ import de.qyotta.eventstore.utils.EventStreamReaderImpl.EventStreamReaderCallbac
 
 @SuppressWarnings("nls")
 public class EventStreamReaderTest extends AbstractEsTest {
-   private String streamName;
-   private EventStoreClient client;
-   private static Map<String, Event> expectedEvents;
-   private String streamUrl;
-
-   @Before
-   public void setUp() {
-      client = new EventStoreClient(EventStoreSettings.withDefaults()
-            .build());
-
-      streamName = EventStreamReaderTest.class.getSimpleName() + "-" + UUID.randomUUID();
-      streamUrl = BASE_STREAMS_URL + streamName;
-      expectedEvents = new HashMap<>();
-   }
-
-   private void createEvents(int numberOfEvents) throws InterruptedException {
-      for (int i = 0; i < numberOfEvents; i++) {
-         final String eventUuid = UUID.randomUUID()
-               .toString();
-         final Event event = Event.builder()
-               .eventId(eventUuid)
-               .eventType("Testtype")
-               .data(new Gson().toJson(new MyEvent(eventUuid)))
-               .metadata(metaData())
-               .build();
-         expectedEvents.put(eventUuid, event);
-         client.appendEvent(streamName, event);
-      }
-   }
 
    @After
    public void tearDown() {

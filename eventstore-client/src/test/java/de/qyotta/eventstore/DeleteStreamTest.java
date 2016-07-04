@@ -13,6 +13,7 @@ import java.util.UUID;
 import org.apache.log4j.Logger;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import de.qyotta.eventstore.communication.EsWriter;
@@ -22,13 +23,11 @@ import de.qyotta.eventstore.utils.HttpClientFactory;
 public class DeleteStreamTest extends AbstractEsTest {
    private static final Logger LOGGER = Logger.getLogger(DeleteStreamTest.class.getName());
    private EsWriter writer;
-   private String streamUrl;
 
    @Before
    public void setUp() {
       writer = new EsWriter(HttpClientFactory.httpClient(EventStoreSettings.withDefaults()
             .build()));
-      streamUrl = BASE_STREAMS_URL + EventWriterTest.class.getSimpleName() + "-" + UUID.randomUUID();
       createStream(); // create the stream we will try to delete in the tests
    }
 
@@ -39,6 +38,7 @@ public class DeleteStreamTest extends AbstractEsTest {
    }
 
    @Test
+   @Ignore
    public void shouldSoftDelete() {
       writer.deleteStream(streamUrl, false);
       // check if reading the stream returns 404 (see: http://docs.geteventstore.com/http-api/3.6.0/deleting-a-stream/)
@@ -51,6 +51,7 @@ public class DeleteStreamTest extends AbstractEsTest {
    }
 
    @Test
+   @Ignore
    public void shouldHardDelete() {
       writer.deleteStream(streamUrl, true);
       // check if reading the stream returns 410 (see: http://docs.geteventstore.com/http-api/3.6.0/deleting-a-stream/)

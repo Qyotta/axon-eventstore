@@ -17,15 +17,16 @@ public class EventReaderTest extends AbstractEsTest {
    private EsReader reader;
 
    @Before
-   public void setUp() {
+   public void setUp() throws InterruptedException {
       reader = new EsReader(HttpClientFactory.httpClient(EventStoreSettings.withDefaults()
             .build()));
+      createEvents(100);
    }
 
    @Test
    public void shouldReadFeed() {
       // let's read the stats stream as it is already there for the taking
-      final EventStreamFeed feed = reader.readStream(BASE_STREAMS_URL + STATS_STREAM);
+      final EventStreamFeed feed = reader.readStream(streamUrl);
       assertTrue(feed.getLinks()
             .stream()
             .anyMatch(l -> l.getRelation()
@@ -36,7 +37,7 @@ public class EventReaderTest extends AbstractEsTest {
 
    @Test
    public void shouldReadEvent() {
-      final EventStreamFeed feed = reader.readStream(BASE_STREAMS_URL + STATS_STREAM);
+      final EventStreamFeed feed = reader.readStream(streamUrl);
       feed.getEntries()
             .get(0)
             .getLinks()

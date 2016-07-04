@@ -23,7 +23,6 @@ import de.qyotta.eventstore.utils.HttpClientFactory;
 public class EventWriterTest extends AbstractEsTest {
    private EsWriter writer;
    private EsReader reader;
-   private String streamUrl;
 
    @Before
    public void setUp() {
@@ -31,7 +30,6 @@ public class EventWriterTest extends AbstractEsTest {
             .build()));
       reader = new EsReader(HttpClientFactory.httpClient(EventStoreSettings.withDefaults()
             .build()));
-      streamUrl = BASE_STREAMS_URL + EventWriterTest.class.getSimpleName() + "-" + UUID.randomUUID();
    }
 
    @After
