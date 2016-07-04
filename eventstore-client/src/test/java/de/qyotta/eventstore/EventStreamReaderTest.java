@@ -26,9 +26,10 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
+import com.google.gson.Gson;
+
 import de.qyotta.eventstore.model.Event;
 import de.qyotta.eventstore.model.EventResponse;
-import de.qyotta.eventstore.model.SerializableEventData;
 import de.qyotta.eventstore.utils.EventStreamReader;
 import de.qyotta.eventstore.utils.EventStreamReaderImpl.EventStreamReaderCallback;
 
@@ -56,11 +57,8 @@ public class EventStreamReaderTest extends AbstractEsTest {
          final Event event = Event.builder()
                .eventId(eventUuid)
                .eventType("Testtype")
-               .data(SerializableEventData.builder()
-                     .type(MyEvent.class)
-                     .data(new MyEvent(eventUuid))
-                     .build())
-               .metadata("Test")
+               .data(new Gson().toJson(new MyEvent(eventUuid)))
+               .metadata(metaData())
                .build();
          expectedEvents.put(eventUuid, event);
          client.appendEvent(streamName, event);
@@ -109,12 +107,9 @@ public class EventStreamReaderTest extends AbstractEsTest {
             .eventId(UUID.randomUUID()
                   .toString())
             .eventType("something")
-            .data(SerializableEventData.builder()
-                  .type(MyEvent.class)
-                  .data(new MyEvent(UUID.randomUUID()
-                        .toString()))
-                  .build())
-            .metadata("something")
+            .data(new Gson().toJson(new MyEvent(UUID.randomUUID()
+                  .toString())))
+            .metadata(metaData())
             .build();
       client.appendEvent(streamName, expected);
       eventStreamReader.catchUp();
@@ -172,12 +167,9 @@ public class EventStreamReaderTest extends AbstractEsTest {
             .eventId(UUID.randomUUID()
                   .toString())
             .eventType("Testtype")
-            .data(SerializableEventData.builder()
-                  .type(MyEvent.class)
-                  .data(new MyEvent(UUID.randomUUID()
-                        .toString()))
-                  .build())
-            .metadata("Test")
+            .data(new Gson().toJson(new MyEvent(UUID.randomUUID()
+                  .toString())))
+            .metadata(metaData())
             .build();
       client.appendEvent(streamName, given);
       return client.readEvents(streamName)

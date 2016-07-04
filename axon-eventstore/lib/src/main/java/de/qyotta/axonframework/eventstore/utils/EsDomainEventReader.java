@@ -32,7 +32,7 @@ public class EsDomainEventReader implements EventStreamReader {
       this.reader = new EventStoreClient(settings).newEventStreamReader(streamName, intervalMillis, new EventStreamReaderCallback() {
          @Override
          public void readEvent(EventResponse event) {
-            callback.onEvent(EsEventStoreUtils.domainEventMessageOf(event.getContent()));
+            callback.onEvent(EsEventStoreUtils.domainEventMessageOf(event));
          }
       });
    }

@@ -39,11 +39,13 @@ public class EventStoreIntegrationTest extends AbstractIntegrationTest {
 
    @Test
    public void shouldHandleCommands() throws Exception {
-      commandGateway.sendAndWait(new CreateTestAggregate(myAggregateId));
-      commandGateway.sendAndWait(new ChangeTestAggregate(myAggregateId));
-      commandGateway.sendAndWait(new ChangeTestAggregate(myAggregateId));
-      commandGateway.sendAndWait(new ChangeTestAggregate(myAggregateId));
-      commandGateway.sendAndWait(new ChangeTestAggregate(myAggregateId));
+      final Map<String, String> m = new HashMap<>();
+      m.put("networkId", "55");
+      commandGateway.sendAndWait(new GenericCommandMessage<CreateTestAggregate>(new CreateTestAggregate(myAggregateId), m));
+      commandGateway.sendAndWait(new GenericCommandMessage<CreateTestAggregate>(new CreateTestAggregate(myAggregateId), m));
+      commandGateway.sendAndWait(new GenericCommandMessage<CreateTestAggregate>(new CreateTestAggregate(myAggregateId), m));
+      commandGateway.sendAndWait(new GenericCommandMessage<CreateTestAggregate>(new CreateTestAggregate(myAggregateId), m));
+      commandGateway.sendAndWait(new GenericCommandMessage<CreateTestAggregate>(new CreateTestAggregate(myAggregateId), m));
    }
 
    @Rule

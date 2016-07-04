@@ -1,10 +1,5 @@
 package de.qyotta.eventstore;
 
-import com.google.gson.JsonDeserializer;
-import com.google.gson.JsonSerializer;
-
-import de.qyotta.eventstore.model.SerializableEventData;
-import de.qyotta.eventstore.utils.EventDataSerializer;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -38,8 +33,6 @@ public class EventStoreSettings {
    private String password;
    private Integer connectionTimeoutMillis;
    private Integer socketTimeoutMillis;
-   private JsonDeserializer<SerializableEventData> eventDataDeserializer;
-   private JsonSerializer<SerializableEventData> eventDataSerializer;
    private String cacheDirectory;
    private boolean cacheResponses;
 
@@ -52,8 +45,6 @@ public class EventStoreSettings {
             .password(DEFAULT_PASSWORD)
             .connectionTimeoutMillis(DEFAULT_CONNECTION_TIMEOUT_MILLIS)
             .socketTimeoutMillis(DEFAULT_SOCKET_TIMEOUT_MILLIS)
-            .eventDataDeserializer(new EventDataSerializer())
-            .eventDataSerializer(new EventDataSerializer())
             .cacheResponses(true);
    }
 

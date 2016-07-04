@@ -17,8 +17,8 @@ public class EsContext {
       this.settings = settings;
       httpclient = HttpClientFactory.httpClient(settings);
 
-      reader = new EsReader(httpclient, settings.getEventDataDeserializer());
-      writer = new EsWriter(httpclient, settings.getEventDataSerializer());
+      reader = new EsReader(httpclient);
+      writer = new EsWriter(httpclient);
    }
 
    public EsReader getReader() {

@@ -3,12 +3,16 @@ package de.qyotta.eventstore;
 import static com.jayway.restassured.RestAssured.given;
 import static de.qyotta.eventstore.utils.Constants.ES_HARD_DELETE_HEADER;
 
+import java.util.LinkedHashMap;
+import java.util.Map;
+
 import org.apache.log4j.ConsoleAppender;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PatternLayout;
 import org.junit.BeforeClass;
 
+import com.google.gson.Gson;
 import com.jayway.restassured.RestAssured;
 
 import lombok.AccessLevel;
@@ -31,6 +35,11 @@ public class AbstractEsTest {
    private static final String STREAMS = "/streams";
    protected static String BASE_STREAMS_URL = BASE_URL + ":" + PORT + STREAMS + "/";
    protected static final String STATS_STREAM = "$stats-127.0.0.1:2113";
+
+   protected static final Map<String, String> METADATA = new LinkedHashMap<>();
+   static {
+      METADATA.put("TEST", "TEST");
+   }
 
    @BeforeClass
    public static void setupClass() {
@@ -55,5 +64,9 @@ public class AbstractEsTest {
    @AllArgsConstructor(access = AccessLevel.PUBLIC)
    public static final class MyEvent {
       private String value;
+   }
+
+   protected static String metaData() {
+      return new Gson().toJson(METADATA);
    }
 }

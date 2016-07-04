@@ -19,6 +19,6 @@ public class Event {
    private String eventId;
    private Long eventNumber;
    private String eventType;
-   private SerializableEventData data;
-   private Object metadata;
+   private String data;
+   private String metadata;
 }

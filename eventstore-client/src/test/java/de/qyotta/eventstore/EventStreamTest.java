@@ -17,9 +17,10 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.google.gson.Gson;
+
 import de.qyotta.eventstore.model.Event;
 import de.qyotta.eventstore.model.EventResponse;
-import de.qyotta.eventstore.model.SerializableEventData;
 import de.qyotta.eventstore.utils.EsUtils;
 
 @SuppressWarnings("nls")
@@ -47,11 +48,9 @@ public class EventStreamTest extends AbstractEsTest {
          final Event event = Event.builder()
                .eventId(eventUuid)
                .eventType("Testtype")
-               .data(SerializableEventData.builder()
-                     .type(MyEvent.class)
-                     .data(new MyEvent(eventUuid))
-                     .build())
-               .metadata("Test")
+               .data(new Gson().toJson(new MyEvent(UUID.randomUUID()
+                     .toString())))
+               .metadata(metaData())
                .build();
          expectedEvents.put(eventUuid, event);
          client.appendEvent(streamName, event);
@@ -182,11 +181,9 @@ public class EventStreamTest extends AbstractEsTest {
             .eventId(UUID.randomUUID()
                   .toString())
             .eventType("Testtype")
-            .data(SerializableEventData.builder()
-                  .type(MyEvent.class)
-                  .data(new MyEvent("ABCS"))
-                  .build())
-            .metadata("Test")
+            .data(new Gson().toJson(new MyEvent(UUID.randomUUID()
+                  .toString())))
+            .metadata(metaData())
             .build();
       client.appendEvent(streamName, expected);
       eventStream.loadNext();

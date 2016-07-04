@@ -22,14 +22,12 @@ public class EsEventStreamBackedDomainEventStream implements DomainEventStream {
 
    @Override
    public DomainEventMessage next() {
-      return EsEventStoreUtils.domainEventMessageOf(eventStream.next()
-            .getContent());
+      return EsEventStoreUtils.domainEventMessageOf(eventStream.next());
    }
 
    @Override
    public DomainEventMessage peek() {
-      return EsEventStoreUtils.domainEventMessageOf(eventStream.peek()
-            .getContent());
+      return EsEventStoreUtils.domainEventMessageOf(eventStream.peek());
    }
 
 }

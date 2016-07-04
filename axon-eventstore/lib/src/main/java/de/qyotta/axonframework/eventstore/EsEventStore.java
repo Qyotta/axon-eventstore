@@ -12,17 +12,20 @@ import org.axonframework.domain.DomainEventMessage;
 import org.axonframework.domain.DomainEventStream;
 import org.axonframework.eventstore.EventStore;
 import org.axonframework.eventstore.EventStreamNotFoundException;
+import org.axonframework.serializer.Revision;
+
+import com.google.gson.Gson;
 
 import de.qyotta.axonframework.eventstore.utils.SerializableDomainEvent;
 import de.qyotta.eventstore.EventStoreClient;
 import de.qyotta.eventstore.EventStoreSettings;
 import de.qyotta.eventstore.EventStream;
 import de.qyotta.eventstore.model.Event;
-import de.qyotta.eventstore.model.SerializableEventData;
 
 @SuppressWarnings({ "rawtypes" })
 public class EsEventStore implements EventStore {
    private final EventStoreClient client;
+   Gson gson = new Gson();
 
    public EsEventStore(final EventStoreSettings settings) {
       this.client = new EventStoreClient(settings);
@@ -69,14 +72,25 @@ public class EsEventStore implements EventStore {
       return Event.builder()
             .eventId(message.getIdentifier())
             .eventType(message.getPayloadType()
-                  .getSimpleName())
-            .data(SerializableEventData.of(SerializableDomainEvent.builder()
+                  .getName())
+            .data(serialize(SerializableDomainEvent.builder()
                   .aggregateIdentifier(message.getAggregateIdentifier())
-                  .payload(SerializableEventData.of(message.getPayload()))
-                  .timestamp(message.getTimestamp()
-                        .toString())
-                  .metaData(metaData)
+                  .payload(serialize(message.getPayload()))
+                  .payloadRevision(getPayloadRevision(message.getPayloadType()))
                   .build()))
+            .metadata(serialize(message.getMetaData()))
             .build();
+   }
+
+   private String getPayloadRevision(Class<?> payloadType) {
+      final Revision revision = payloadType.getDeclaredAnnotation(Revision.class);
+      if (revision != null) {
+         return revision.value();
+      }
+      return null;
+   }
+
+   private String serialize(Object payload) {
+      return gson.toJson(payload);
    }
 }

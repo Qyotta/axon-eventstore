@@ -4,9 +4,13 @@ import static de.qyotta.eventstore.utils.Constants.CONTENT_TYPE_HEADER;
 import static de.qyotta.eventstore.utils.Constants.CONTENT_TYPE_JSON_EVENTS;
 import static de.qyotta.eventstore.utils.Constants.ES_HARD_DELETE_HEADER;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.stream.Collectors;
 
 import org.apache.http.HttpStatus;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -18,10 +22,10 @@ import org.apache.log4j.Logger;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.google.gson.JsonSerializer;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 
 import de.qyotta.eventstore.model.Event;
-import de.qyotta.eventstore.model.SerializableEventData;
 
 @SuppressWarnings("nls")
 public class EsWriter {
@@ -29,10 +33,9 @@ public class EsWriter {
    private final Gson gson;
    private final CloseableHttpClient httpclient;
 
-   public EsWriter(final CloseableHttpClient httpclient, final JsonSerializer<SerializableEventData> eventDataSerializer) {
+   public EsWriter(final CloseableHttpClient httpclient) {
       this.httpclient = httpclient;
       final GsonBuilder gsonBuilder = new GsonBuilder();
-      gsonBuilder.registerTypeAdapter(SerializableEventData.class, eventDataSerializer);
       gson = gsonBuilder.create();
    }
 
@@ -41,12 +44,23 @@ public class EsWriter {
          try {
             final HttpPost post = new HttpPost(url);
             post.addHeader(CONTENT_TYPE_HEADER, CONTENT_TYPE_JSON_EVENTS);
+            final JsonArray body = new JsonArray();
+            for (final Event e : collection) {
+               final JsonObject o = new JsonObject();
+               o.addProperty("eventId", e.getEventId());
+               o.addProperty("eventType", e.getEventType());
+               o.add("data", gson.fromJson(e.getData(), JsonObject.class));
+               o.add("metadata", gson.fromJson(e.getMetadata(), JsonObject.class));
+               body.add(o);
+            }
 
+            final String jsonString = gson.toJson(body);
             @SuppressWarnings("deprecation")
-            final StringEntity requestEntity = new StringEntity(gson.toJson(collection), CONTENT_TYPE_JSON_EVENTS, "utf-8");
+            final StringEntity requestEntity = new StringEntity(jsonString, CONTENT_TYPE_JSON_EVENTS, "utf-8");
             post.setEntity(requestEntity);
 
-            LOGGER.info("Executing request " + post.getRequestLine());
+            LOGGER.warn("Executing request " + read(post.getEntity()
+                  .getContent()));
             final CloseableHttpResponse response = httpclient.execute(post);
             try {
                if (!(HttpStatus.SC_CREATED == response.getStatusLine()
@@ -61,6 +75,13 @@ public class EsWriter {
          }
       } catch (final IOException e) {
          throw new RuntimeException("Could not save stream feed from url: " + url, e);
+      }
+   }
+
+   public static String read(InputStream input) throws IOException {
+      try (BufferedReader buffer = new BufferedReader(new InputStreamReader(input))) {
+         return buffer.lines()
+               .collect(Collectors.joining("\n"));
       }
    }
 

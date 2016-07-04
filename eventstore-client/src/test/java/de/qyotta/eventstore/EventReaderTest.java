@@ -11,7 +11,6 @@ import de.qyotta.eventstore.communication.EsReader;
 import de.qyotta.eventstore.model.Event;
 import de.qyotta.eventstore.model.EventStreamFeed;
 import de.qyotta.eventstore.model.Link;
-import de.qyotta.eventstore.utils.EventDataSerializer;
 import de.qyotta.eventstore.utils.HttpClientFactory;
 
 public class EventReaderTest extends AbstractEsTest {
@@ -20,7 +19,7 @@ public class EventReaderTest extends AbstractEsTest {
    @Before
    public void setUp() {
       reader = new EsReader(HttpClientFactory.httpClient(EventStoreSettings.withDefaults()
-            .build()), new EventDataSerializer());
+            .build()));
    }
 
    @Test

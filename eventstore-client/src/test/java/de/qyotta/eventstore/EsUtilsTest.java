@@ -14,9 +14,7 @@ import de.qyotta.eventstore.communication.EsWriter;
 import de.qyotta.eventstore.model.Entry;
 import de.qyotta.eventstore.model.Event;
 import de.qyotta.eventstore.model.EventStreamFeed;
-import de.qyotta.eventstore.model.SerializableEventData;
 import de.qyotta.eventstore.utils.EsUtils;
-import de.qyotta.eventstore.utils.EventDataSerializer;
 import de.qyotta.eventstore.utils.HttpClientFactory;
 
 @SuppressWarnings("nls")
@@ -29,9 +27,9 @@ public class EsUtilsTest extends AbstractEsTest {
    @Before
    public void setUp() {
       writer = new EsWriter(HttpClientFactory.httpClient(EventStoreSettings.withDefaults()
-            .build()), new EventDataSerializer());
+            .build()));
       reader = new EsReader(HttpClientFactory.httpClient(EventStoreSettings.withDefaults()
-            .build()), new EventDataSerializer());
+            .build()));
       streamUrl = BASE_STREAMS_URL + EventWriterTest.class.getSimpleName() + "-" + UUID.randomUUID();
    }
 
@@ -47,10 +45,7 @@ public class EsUtilsTest extends AbstractEsTest {
                .eventId(UUID.randomUUID()
                      .toString())
                .eventType("Testtype")
-               .data(SerializableEventData.builder()
-                     .type(String.class)
-                     .data("TEST")
-                     .build())
+               .data("TEST")
                .metadata("Test")
                .build();
          writer.appendEvent(streamUrl, expected);
