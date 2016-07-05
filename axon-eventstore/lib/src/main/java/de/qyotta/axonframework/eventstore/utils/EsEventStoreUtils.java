@@ -39,7 +39,7 @@ public final class EsEventStoreUtils {
 
          final Map<String, ?> metaData = gson.fromJson(eventResponse.getContent()
                .getMetadata(), METADATA_TYPE);
-         return new GenericDomainEventMessage(eventResponse.getContent().getEventId(), new DateTime(eventResponse.getUpdated(), DateTimeZone.UTC), data.getAggregateIdentifier(), eventResponse.getContent()
+         return new GenericDomainEventMessage(eventResponse.getTitle(), new DateTime(eventResponse.getUpdated(), DateTimeZone.UTC), data.getAggregateIdentifier(), eventResponse.getContent()
                .getEventNumber(), payload, new MetaData(metaData));
       } catch (final ClassNotFoundException e) {
          throw new RuntimeException(e);

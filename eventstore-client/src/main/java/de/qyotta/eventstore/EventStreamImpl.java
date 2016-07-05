@@ -43,9 +43,9 @@ public class EventStreamImpl implements EventStream {
    }
 
    @Override
-   public void setAfterEventId(final String eventId) {
-      setTo(e -> e.getId()
-            .equals(eventId));
+   public void setAfterTitle(final String title) {
+      setTo(e -> e.getTitle()
+            .equals(title));
       loadNextEvent();
 
    }

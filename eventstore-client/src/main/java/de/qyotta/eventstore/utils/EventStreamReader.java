@@ -10,9 +10,9 @@ public interface EventStreamReader {
    void start();
 
    /**
-    * Start after the given eventId (exclusive)
+    * Start after the given title (exclusive)
     */
-   void start(String eventId);
+   void start(String title);
 
    /**
     * Start after the given timestamp (exclusive)

@@ -77,11 +77,11 @@ public class EventStreamReaderImpl implements EventStreamReader {
     * @see de.qyotta.eventstore.utils.EventStreamReader#start(java.lang.String)
     */
    @Override
-   public void start(final String eventId) {
+   public void start(final String title) {
       try {
          shutdownIfNeeded();
          final EventStream eventStream = new EventStreamImpl(streamurl, context);
-         eventStream.setAfterEventId(eventId);
+         eventStream.setAfterTitle(title);
          start(eventStream);
       } catch (final Throwable t) {
          errorCallback.onError("Error initializog event stream.", t);

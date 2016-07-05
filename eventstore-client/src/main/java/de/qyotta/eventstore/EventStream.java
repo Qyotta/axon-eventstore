@@ -14,7 +14,7 @@ public interface EventStream {
 
    void setAfterTimestamp(final Date timestamp);
 
-   void setAfterEventId(final String eventId);
+   void setAfterTitle(final String eventId);
 
    /**
     * Attempts to load the next event in the stream from the current point. If the next event was already loaded this method does nothing. This method is only useful after hasNext returned false.

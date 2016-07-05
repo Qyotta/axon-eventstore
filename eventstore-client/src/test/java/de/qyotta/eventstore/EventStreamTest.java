@@ -28,8 +28,7 @@ public class EventStreamTest extends AbstractEsTest {
 
    @Before
    public void setUp() {
-      client = new EventStoreClient(EventStoreSettings.withDefaults()
-            .build());
+      client = new EventStoreClient(EventStoreSettings.withDefaults().build());
 
       streamName = EventStreamTest.class.getSimpleName() + "-" + UUID.randomUUID();
       streamUrl = BASE_STREAMS_URL + streamName;
@@ -96,8 +95,7 @@ public class EventStreamTest extends AbstractEsTest {
       eventStream.setAfterTimestamp(fromDate);
       final EventResponse next = eventStream.next();
       assertThat(EsUtils.timestampOf(next), is(DateMatchers.after(fromDate)));
-      assertThat(next.getContent()
-            .getEventNumber(), is(0L));
+      assertThat(next.getContent().getEventNumber(), is(0L));
    }
 
    @Test
@@ -119,8 +117,7 @@ public class EventStreamTest extends AbstractEsTest {
 
       final EventResponse eventNr51 = eventStream2.next();
       assertThat(EsUtils.timestampOf(eventNr51), is(DateMatchers.after(fromDate)));
-      assertThat(eventNr51.getContent()
-            .getEventNumber(), is(51L));
+      assertThat(eventNr51.getContent().getEventNumber(), is(51L));
    }
 
    @Test
@@ -137,11 +134,10 @@ public class EventStreamTest extends AbstractEsTest {
       final EventResponse next = eventStream.next();
       // now create a new stream
       final EventStream eventStream2 = client.readEvents(streamName);
-      eventStream2.setAfterEventId(next.getId());
+      eventStream2.setAfterTitle(next.getTitle());
 
       final EventResponse eventNr24 = eventStream2.next();
-      assertThat(eventNr24.getContent()
-            .getEventNumber(), is(24L));
+      assertThat(eventNr24.getContent().getEventNumber(), is(24L));
    }
 
    @Test
@@ -156,21 +152,13 @@ public class EventStreamTest extends AbstractEsTest {
       assertThat(eventStream.hasNext(), is(false));
       assertThat(eventStream.peek(), is(nullValue()));
       // now add an event
-      final Event expected = Event.builder()
-            .eventId(UUID.randomUUID()
-                  .toString())
-            .eventType("Testtype")
-            .data(new Gson().toJson(new MyEvent(UUID.randomUUID()
-                  .toString())))
-            .metadata(metaData())
+      final Event expected = Event.builder().eventId(UUID.randomUUID().toString()).eventType("Testtype").data(new Gson().toJson(new MyEvent(UUID.randomUUID().toString()))).metadata(metaData())
             .build();
       client.appendEvent(streamName, expected);
       eventStream.loadNext();
       assertThat(eventStream.hasNext(), is(true));
       final EventResponse next = eventStream.next();
-      assertThat(next.getContent()
-            .getEventId(), is(equalTo(expected.getEventId())));
-      assertThat(next.getContent()
-            .getData(), is(equalTo(expected.getData())));
+      assertThat(next.getContent().getEventId(), is(equalTo(expected.getEventId())));
+      assertThat(next.getContent().getData(), is(equalTo(expected.getData())));
    }
 }
