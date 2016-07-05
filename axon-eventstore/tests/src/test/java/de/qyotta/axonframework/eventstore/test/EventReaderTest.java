@@ -1,5 +1,6 @@
 package de.qyotta.axonframework.eventstore.test;
 
+import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -44,6 +45,18 @@ public class EventReaderTest extends AbstractIntegrationTest {
       final EsDomainEventReaderCallback callback = mock(EsDomainEventReaderCallback.class);
       reader.setCallback(callback);
       reader.start();
-      verify(callback, times(5));
+      verify(callback, times(5)).onEvent(any());
+   }
+
+   @Test
+   public void shouldOnlyOneEvent() throws Exception {
+      commandGateway.sendAndWait(new CreateTestAggregate(myAggregateId));
+      for (int i = 0; i < 76; i++) {
+         commandGateway.sendAndWait(new ChangeTestAggregate(myAggregateId));
+      }
+      final EsDomainEventReaderCallback callback = mock(EsDomainEventReaderCallback.class);
+      reader.setCallback(callback);
+      reader.start("68@mytestaggregate-" + myAggregateId); //$NON-NLS-1$
+      verify(callback, times(1)).onEvent(any());
    }
 }

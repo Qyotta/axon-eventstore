@@ -125,19 +125,24 @@ public class EventStreamTest extends AbstractEsTest {
       numberOfStoredEvents = 100;
       createEvents(numberOfStoredEvents);
 
-      final EventStream eventStream = client.readEvents(streamName);
-      // got to event 49
-      for (int i = 0; i < 23; i++) {
-         eventStream.next();
+      for (int i = 0; i < 99; i++) {
+         shouldSetTo(i);
       }
-      // take timestamp of event nr. 23
-      final EventResponse next = eventStream.next();
-      // now create a new stream
-      final EventStream eventStream2 = client.readEvents(streamName);
-      eventStream2.setAfterTitle(next.getTitle());
+      final EventStream eventStream = setTo(99);
 
-      final EventResponse eventNr24 = eventStream2.next();
-      assertThat(eventNr24.getContent().getEventNumber(), is(24L));
+      assertThat(eventStream.next(), is(nullValue()));
+   }
+
+   private void shouldSetTo(int i) {
+      final EventStream eventStream = setTo(i);
+      final EventResponse event = eventStream.next();
+      assertThat(event.getContent().getEventNumber(), is(Long.valueOf(i + 1)));
+   }
+
+   private EventStream setTo(int i) {
+      final EventStream eventStream = client.readEvents(streamName);
+      eventStream.setAfterTitle(i + "@" + streamName);
+      return eventStream;
    }
 
    @Test

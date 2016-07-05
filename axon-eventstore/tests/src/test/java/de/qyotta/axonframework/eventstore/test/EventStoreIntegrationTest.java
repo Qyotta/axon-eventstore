@@ -2,7 +2,6 @@ package de.qyotta.axonframework.eventstore.test;
 
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.isA;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
@@ -54,12 +53,9 @@ public class EventStoreIntegrationTest extends AbstractIntegrationTest {
    @Test
    public void shouldRehydrateAndThrow() throws Exception {
       thrown.expect(CommandExecutionException.class);
-      thrown.expectCause(isA(IllegalStateException.class));
 
       commandGateway.sendAndWait(new CreateTestAggregate(myAggregateId));
-      for (int i = 0; i < 10; i++) {
-         commandGateway.sendAndWait(new ChangeTestAggregate(myAggregateId));
-      }
+      commandGateway.sendAndWait(new ChangeTestAggregate("something else"));
    }
 
    @Test
@@ -70,8 +66,7 @@ public class EventStoreIntegrationTest extends AbstractIntegrationTest {
       commandGateway.sendAndWait(command.andMetaData(expected));
       final DomainEventStream readEvents = eventStore.readEvents(MyTestAggregate.class.getSimpleName(), myAggregateId);
       assertTrue(readEvents.hasNext());
-      final MetaData actual = readEvents.next()
-            .getMetaData();
+      final MetaData actual = readEvents.next().getMetaData();
       assertThat(actual.get("Test"), is(notNullValue()));
       assertThat(actual.get("Test"), is(equalTo("Test")));
    }
