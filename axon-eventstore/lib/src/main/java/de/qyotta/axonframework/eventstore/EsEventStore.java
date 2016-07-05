@@ -69,13 +69,14 @@ public class EsEventStore implements EventStore {
             .entrySet()) {
          metaData.put(entry.getKey(), entry.getValue());
       }
+      String serialize = serialize(message.getPayload());
       return Event.builder()
             .eventId(message.getIdentifier())
             .eventType(message.getPayloadType()
                   .getName())
             .data(serialize(SerializableDomainEvent.builder()
                   .aggregateIdentifier(message.getAggregateIdentifier())
-                  .payload(serialize(message.getPayload()))
+                  .payload(serialize)
                   .payloadRevision(getPayloadRevision(message.getPayloadType()))
                   .build()))
             .metadata(serialize(message.getMetaData()))
