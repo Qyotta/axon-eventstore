@@ -43,7 +43,7 @@ public class EventStreamImpl implements EventStream {
    }
 
    @Override
-   public void setAfterTitle(final String title) {
+   public synchronized void setAfterTitle(final String title) {
       setTo(e -> e.getTitle()
             .equals(title));
       loadNextEvent();
@@ -51,12 +51,12 @@ public class EventStreamImpl implements EventStream {
    }
 
    @Override
-   public void setAfterTimestamp(final Date timestamp) {
+   public synchronized void setAfterTimestamp(final Date timestamp) {
       final Entry entry = setTo(e -> timestamp.before(EsUtils.timestampOf(e)));
       next = readEvent(entry);
    }
 
-   private Entry setTo(final EntryMatchingStrategy matcher) {
+   private synchronized Entry setTo(final EntryMatchingStrategy matcher) {
       loadFirstFeed();
       while (true) {
          final Entry e = pollNextEntry();
@@ -69,7 +69,7 @@ public class EventStreamImpl implements EventStream {
       }
    }
 
-   private Entry pollNextEntry() {
+   private synchronized Entry pollNextEntry() {
       if (!currentEntries.isEmpty()) {
          return currentEntries.pollLast();
       }
@@ -80,7 +80,7 @@ public class EventStreamImpl implements EventStream {
       return null;
    }
 
-   private void loadFeed(final String feedUrl) {
+   private synchronized void loadFeed(final String feedUrl) {
       final EventStreamFeed feed = context.getReader()
             .readStream(feedUrl);
       currentLinks = feed.getLinks();
@@ -93,7 +93,7 @@ public class EventStreamImpl implements EventStream {
     * @see de.qyotta.eventstore.EventStream#hasNext()
     */
    @Override
-   public boolean hasNext() {
+   public synchronized boolean hasNext() {
       // If 'links' contains a 'previous' link, we have elements left
       return next != null;
    }
@@ -104,13 +104,13 @@ public class EventStreamImpl implements EventStream {
     * @see de.qyotta.eventstore.EventStream#next()
     */
    @Override
-   public final EventResponse next() {
+   public synchronized final EventResponse next() {
       final EventResponse result = next;
       loadNextEvent();
       return result;
    }
 
-   private void loadNextEvent() {
+   private synchronized void loadNextEvent() {
       try {
          previous = next;
          if (!currentEntries.isEmpty()) {
@@ -128,7 +128,7 @@ public class EventStreamImpl implements EventStream {
       }
    }
 
-   private boolean loadNextFeed() {
+   private synchronized boolean loadNextFeed() {
       final Link previousLink = find(PREVIOUS, currentLinks);
       if (previousLink != null) {
          loadFeed(previousLink.getUri());
@@ -143,7 +143,7 @@ public class EventStreamImpl implements EventStream {
     * @see de.qyotta.eventstore.EventStream#peek()
     */
    @Override
-   public final EventResponse peek() {
+   public synchronized final EventResponse peek() {
       return next;
    }
 
@@ -165,7 +165,7 @@ public class EventStreamImpl implements EventStream {
       return event;
    }
 
-   private Link find(final String relation, final List<Link> links) {
+   private synchronized Link find(final String relation, final List<Link> links) {
       for (final Link link : links) {
          if (relation.equals(link.getRelation())) {
             return link;
@@ -174,7 +174,7 @@ public class EventStreamImpl implements EventStream {
       return null;
    }
 
-   private void loadFirstFeed() {
+   private synchronized void loadFirstFeed() {
       loadFeed(streamUrl);
       final Link last = find(Link.LAST, currentLinks);
       if (last != null) {
@@ -184,7 +184,7 @@ public class EventStreamImpl implements EventStream {
    }
 
    @Override
-   public void loadNext() {
+   public synchronized void loadNext() {
       if (hasNext()) {
          return;
       }
@@ -197,10 +197,14 @@ public class EventStreamImpl implements EventStream {
          }
          while (!currentEntries.isEmpty()) {
             final Entry current = currentEntries.pollLast();
-            if (EsUtils.getEventNumber(current) > previous.getContent()
-                  .getEventNumber()) {
-               next = readEvent(current);
-               return;
+            final String currentTitle = current.getTitle();
+            final String previousTitle = previous.getTitle();
+            if (currentTitle.equals(previousTitle)) {
+               // load the next one or not =)
+               if (!currentEntries.isEmpty()) {
+                  next = readEvent(currentEntries.pollLast());
+                  return;
+               }
             }
          }
       }
