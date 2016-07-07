@@ -59,4 +59,16 @@ public class EventReaderTest extends AbstractIntegrationTest {
       reader.start("75@mytestaggregate-" + myAggregateId); //$NON-NLS-1$
       verify(callback, times(1)).onEvent(any());
    }
+
+   @Test
+   public void shouldRead27Events() throws Exception {
+      commandGateway.sendAndWait(new CreateTestAggregate(myAggregateId));
+      for (int i = 0; i < 99; i++) {
+         commandGateway.sendAndWait(new ChangeTestAggregate(myAggregateId));
+      }
+      final EsDomainEventReaderCallback callback = mock(EsDomainEventReaderCallback.class);
+      reader.setCallback(callback);
+      reader.start("72@mytestaggregate-" + myAggregateId); //$NON-NLS-1$
+      verify(callback, times(27)).onEvent(any());
+   }
 }

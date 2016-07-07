@@ -2,8 +2,6 @@ package de.qyotta.eventstore.communication;
 
 import static de.qyotta.eventstore.utils.Constants.ACCEPT_EVENTSTORE_ATOM_JSON;
 import static de.qyotta.eventstore.utils.Constants.ACCEPT_HEADER;
-import static de.qyotta.eventstore.utils.Constants.EMBED_PARAM;
-import static de.qyotta.eventstore.utils.Constants.TRY_HARDER;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -85,7 +83,7 @@ public class EsReader {
 
    public EventResponse readEvent(String url) {
       try {
-         return loadEvent(url + "?" + EMBED_PARAM + "=" + TRY_HARDER);
+         return loadEvent(url);
       } catch (final IOException e) {
          throw new RuntimeException("Could not load EventResponse from url: '" + url + "'.", e);
       }

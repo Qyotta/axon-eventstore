@@ -13,6 +13,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -128,6 +129,18 @@ public class EventStreamReaderTest extends AbstractEsTest {
       createEvents(10);
       eventStreamReader.catchUp();
       verify(callback, times(10)).readEvent(any(EventResponse.class));
+   }
+
+   @Test
+   public void shouldHaveNoInteractionsIfCatchingUpOnUnchangedStream() throws InterruptedException {
+      createEvents(78);
+      final EventStreamReaderCallback callback = mock(EventStreamReaderCallback.class);
+      final EventStreamReader eventStreamReader = client.newEventStreamReader(streamName, -1, callback);
+
+      eventStreamReader.start();
+      verify(callback, times(78)).readEvent(any(EventResponse.class));
+      eventStreamReader.catchUp();
+      verifyNoMoreInteractions(callback);
    }
 
    private String prepareAnEventInStream() {
