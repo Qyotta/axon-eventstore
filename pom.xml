@@ -60,6 +60,20 @@
                </execution>
             </executions>
          </plugin>
+
+         <plugin>
+            <artifactId>maven-deploy-plugin</artifactId>
+            <version>2.8.1</version>
+            <executions>
+               <execution>
+                  <id>default-deploy</id>
+                  <phase>deploy</phase>
+                  <goals>
+                     <goal>deploy</goal>
+                  </goals>
+               </execution>
+            </executions>
+         </plugin>
       </plugins>
    </build>
 
@@ -69,7 +83,7 @@
          <artifactId>lombok</artifactId>
          <version>${lombok.version}</version>
       </dependency>
-            <!-- needed for lombok -->
+      <!-- needed for lombok -->
       <dependency>
          <groupId>org.hibernate.javax.persistence</groupId>
          <artifactId>hibernate-jpa-2.1-api</artifactId>
@@ -128,4 +142,12 @@
          <scope>test</scope>
       </dependency>
    </dependencies>
+
+
+   <distributionManagement>
+      <snapshotRepository>
+         <id>nexus-deployment</id>
+         <url>http://qyotta.de/nexus/content/repositories/qyotta-snapshots</url>
+      </snapshotRepository>
+   </distributionManagement>
 </project>
