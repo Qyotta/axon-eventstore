@@ -1,5 +1,7 @@
 package de.qyotta.eventstore.communication;
 
+import de.qyotta.eventstore.model.Event;
+
 import static de.qyotta.eventstore.utils.Constants.CONTENT_TYPE_HEADER;
 import static de.qyotta.eventstore.utils.Constants.CONTENT_TYPE_JSON_EVENTS;
 import static de.qyotta.eventstore.utils.Constants.ES_HARD_DELETE_HEADER;
@@ -24,8 +26,6 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-
-import de.qyotta.eventstore.model.Event;
 
 @SuppressWarnings("nls")
 public class EsWriter {
@@ -63,9 +63,10 @@ public class EsWriter {
                   .getContent()));
             final CloseableHttpResponse response = httpclient.execute(post);
             try {
-               if (!(HttpStatus.SC_CREATED == response.getStatusLine()
-                     .getStatusCode())) {
-                  throw new RuntimeException("Could not save stream feed from url: " + url);
+               if (HttpStatus.SC_CREATED != response.getStatusLine()
+                     .getStatusCode()) {
+                  throw new RuntimeException("Unexpected responsecode: " + response.getStatusLine()
+                        .getStatusCode() + " for URL: " + url);
                }
             } finally {
                response.close();
@@ -73,12 +74,12 @@ public class EsWriter {
          } finally {
             httpclient.close();
          }
-      } catch (final IOException e) {
-         throw new RuntimeException("Could not save stream feed from url: " + url, e);
+      } catch (final Exception e) {
+         throw new RuntimeException("Could not appends events to stream-url: " + url, e);
       }
    }
 
-   public static String read(InputStream input) throws IOException {
+   private static String read(InputStream input) throws IOException {
       try (BufferedReader buffer = new BufferedReader(new InputStreamReader(input))) {
          return buffer.lines()
                .collect(Collectors.joining("\n"));
@@ -98,8 +99,8 @@ public class EsWriter {
             LOGGER.info("Executing request " + delete.getRequestLine());
             final CloseableHttpResponse response = httpclient.execute(delete);
             try {
-               if (!(HttpStatus.SC_NO_CONTENT == response.getStatusLine()
-                     .getStatusCode())) {
+               if (HttpStatus.SC_NO_CONTENT != response.getStatusLine()
+                     .getStatusCode()) {
                   throw new RuntimeException("Could not delete stream with url: " + url);
                }
             } finally {

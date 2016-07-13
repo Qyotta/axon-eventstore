@@ -127,6 +127,12 @@
          <artifactId>rest-assured</artifactId>
          <version>${restassured.version}</version>
          <scope>test</scope>
+         <exclusions>
+            <exclusion>
+               <groupId>org.apache.httpcomponents</groupId>
+               <artifactId>httpclient</artifactId>
+            </exclusion>
+         </exclusions>
       </dependency>
       <!-- awaitility (async testing) -->
       <dependency>
