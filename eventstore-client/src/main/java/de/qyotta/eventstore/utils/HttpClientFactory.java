@@ -1,5 +1,26 @@
 package de.qyotta.eventstore.utils;
 
+import java.io.IOException;
+
+import org.apache.http.HttpResponse;
+import org.apache.http.auth.AuthScope;
+import org.apache.http.auth.UsernamePasswordCredentials;
+import org.apache.http.client.CredentialsProvider;
+import org.apache.http.client.HttpRequestRetryHandler;
+import org.apache.http.client.config.RequestConfig;
+import org.apache.http.conn.HttpClientConnectionManager;
+import org.apache.http.impl.client.BasicCredentialsProvider;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.DefaultConnectionKeepAliveStrategy;
+import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.impl.client.LaxRedirectStrategy;
+import org.apache.http.impl.client.cache.CacheConfig;
+import org.apache.http.impl.client.cache.CachingHttpClientBuilder;
+import org.apache.http.impl.client.cache.ehcache.EhcacheHttpCacheStorage;
+import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
+import org.apache.http.protocol.HttpContext;
+import org.apache.log4j.Logger;
+
 import de.qyotta.eventstore.EventStoreSettings;
 import net.sf.ehcache.Cache;
 import net.sf.ehcache.CacheManager;
@@ -10,22 +31,9 @@ import net.sf.ehcache.config.PersistenceConfiguration;
 import net.sf.ehcache.config.PersistenceConfiguration.Strategy;
 import net.sf.ehcache.store.MemoryStoreEvictionPolicy.MemoryStoreEvictionPolicyEnum;
 
-import org.apache.http.auth.AuthScope;
-import org.apache.http.auth.UsernamePasswordCredentials;
-import org.apache.http.client.CredentialsProvider;
-import org.apache.http.client.config.RequestConfig;
-import org.apache.http.conn.HttpClientConnectionManager;
-import org.apache.http.impl.client.BasicCredentialsProvider;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.impl.client.LaxRedirectStrategy;
-import org.apache.http.impl.client.cache.CacheConfig;
-import org.apache.http.impl.client.cache.CachingHttpClientBuilder;
-import org.apache.http.impl.client.cache.ehcache.EhcacheHttpCacheStorage;
-import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
-
 @SuppressWarnings("nls")
 public class HttpClientFactory {
+   private static final Logger LOGGER = Logger.getLogger(HttpClientFactory.class.getName());
 
    private static final String HTTP_CLIENT_CACHE = "httpClientCache";
 
@@ -37,12 +45,39 @@ public class HttpClientFactory {
    }
 
    private static CloseableHttpClient newClosableHttpClient(EventStoreSettings settings) {
-      return HttpClientBuilder.create()
+      final CloseableHttpClient build = HttpClientBuilder.create()
             .setConnectionManager(connectionManager())
             .setConnectionManagerShared(true)
             .setDefaultCredentialsProvider(credentialsProvider(settings))
             .setRedirectStrategy(new LaxRedirectStrategy())
+            .setRetryHandler(new HttpRequestRetryHandler() {
+               @Override
+               public boolean retryRequest(IOException exception, int executionCount, HttpContext context) {
+                  if (executionCount > 3) {
+                     LOGGER.warn("Maximum tries reached for client http pool ");
+                     return false;
+                  }
+                  if (exception instanceof org.apache.http.NoHttpResponseException) {
+                     LOGGER.warn("No response from server on " + executionCount + " call");
+                     return true;
+                  }
+                  return false;
+               }
+            })
+            .setKeepAliveStrategy(new DefaultConnectionKeepAliveStrategy() {
+               @Override
+               public long getKeepAliveDuration(HttpResponse response, HttpContext context) {
+                  final long keepAliveDuration = super.getKeepAliveDuration(response, context);
+                  if (keepAliveDuration == -1) {
+                     // .Keep Alive for 30 secs
+                     return 30 * 1000;
+                  }
+                  return keepAliveDuration;
+               }
+            })
             .build();
+
+      return build;
    }
 
    private static CloseableHttpClient newClosableCachingHttpClient(EventStoreSettings settings) {
@@ -86,7 +121,7 @@ public class HttpClientFactory {
       if (settings.getCacheDirectory() != null) {
          diskStoreConfiguration.setPath(settings.getCacheDirectory());
       } else {
-         String path = System.getProperty("java.io.tmpdir");
+         final String path = System.getProperty("java.io.tmpdir");
          diskStoreConfiguration.setPath(path);
       }
       // Already created a configuration object ...

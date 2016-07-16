@@ -73,6 +73,7 @@ public class EsWriter {
 
             } catch (final Exception e) {
                final StringBuilder sb = new StringBuilder();
+               sb.append("Details:");
 
                if (response != null) {
                   sb.append("code: ")
