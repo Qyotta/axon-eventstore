@@ -23,8 +23,8 @@ public class EventStoreSettings {
    private static final String DEFAULT_SCHEME = "Basic";
    private static final String DEFAULT_REALM = "ES";
    private static final String DEFAULT_HOST = "http://127.0.0.1:2113";
-   private static final int DEFAULT_CONNECTION_TIMEOUT_MILLIS = 2000;
-   private static final int DEFAULT_SOCKET_TIMEOUT_MILLIS = 2000;
+   private static final int DEFAULT_CONNECTION_TIMEOUT_MILLIS = 10000;
+   private static final int DEFAULT_SOCKET_TIMEOUT_MILLIS = 10000;
 
    private String host;
    private String realm;

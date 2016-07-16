@@ -1,24 +1,16 @@
 package de.qyotta.eventstore.utils;
 
-import java.io.IOException;
-
-import org.apache.http.HttpResponse;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.CredentialsProvider;
-import org.apache.http.client.HttpRequestRetryHandler;
 import org.apache.http.client.config.RequestConfig;
-import org.apache.http.conn.HttpClientConnectionManager;
 import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.DefaultConnectionKeepAliveStrategy;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.LaxRedirectStrategy;
 import org.apache.http.impl.client.cache.CacheConfig;
 import org.apache.http.impl.client.cache.CachingHttpClientBuilder;
 import org.apache.http.impl.client.cache.ehcache.EhcacheHttpCacheStorage;
-import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
-import org.apache.http.protocol.HttpContext;
 import org.apache.log4j.Logger;
 
 import de.qyotta.eventstore.EventStoreSettings;
@@ -46,35 +38,14 @@ public class HttpClientFactory {
 
    private static CloseableHttpClient newClosableHttpClient(EventStoreSettings settings) {
       final CloseableHttpClient build = HttpClientBuilder.create()
-            .setConnectionManager(connectionManager())
-            .setConnectionManagerShared(true)
+
+            .setDefaultRequestConfig(requestConfig(settings))
             .setDefaultCredentialsProvider(credentialsProvider(settings))
             .setRedirectStrategy(new LaxRedirectStrategy())
-            .setRetryHandler(new HttpRequestRetryHandler() {
-               @Override
-               public boolean retryRequest(IOException exception, int executionCount, HttpContext context) {
-                  if (executionCount > 3) {
-                     LOGGER.warn("Maximum tries reached for client http pool ");
-                     return false;
-                  }
-                  if (exception instanceof org.apache.http.NoHttpResponseException) {
-                     LOGGER.warn("No response from server on " + executionCount + " call");
-                     return true;
-                  }
-                  return false;
-               }
-            })
-            .setKeepAliveStrategy(new DefaultConnectionKeepAliveStrategy() {
-               @Override
-               public long getKeepAliveDuration(HttpResponse response, HttpContext context) {
-                  final long keepAliveDuration = super.getKeepAliveDuration(response, context);
-                  if (keepAliveDuration == -1) {
-                     // .Keep Alive for 30 secs
-                     return 30 * 1000;
-                  }
-                  return keepAliveDuration;
-               }
-            })
+            .setRetryHandler(new StandardHttpRequestRetryHandler())
+            .setKeepAliveStrategy(new de.qyotta.eventstore.utils.DefaultConnectionKeepAliveStrategy())
+            .setConnectionManagerShared(true)
+
             .build();
 
       return build;
@@ -91,10 +62,14 @@ public class HttpClientFactory {
       return CachingHttpClientBuilder.create()
             .setHttpCacheStorage(ehcacheHttpCacheStorage)
             .setCacheConfig(cacheConfig)
-            .setConnectionManager(connectionManager())
-            .setConnectionManagerShared(true)
+
             .setDefaultRequestConfig(requestConfig(settings))
             .setDefaultCredentialsProvider(credentialsProvider(settings))
+            .setRedirectStrategy(new LaxRedirectStrategy())
+            .setRetryHandler(new StandardHttpRequestRetryHandler())
+            .setKeepAliveStrategy(new de.qyotta.eventstore.utils.DefaultConnectionKeepAliveStrategy())
+            .setConnectionManagerShared(true)
+
             .build();
    }
 
@@ -103,11 +78,6 @@ public class HttpClientFactory {
             .setConnectTimeout(settings.getConnectionTimeoutMillis())
             .setSocketTimeout(settings.getSocketTimeoutMillis())
             .build();
-   }
-
-   private static HttpClientConnectionManager connectionManager() {
-      final HttpClientConnectionManager poolingConnManager = new PoolingHttpClientConnectionManager();
-      return poolingConnManager;
    }
 
    private static CredentialsProvider credentialsProvider(final EventStoreSettings settings) {
