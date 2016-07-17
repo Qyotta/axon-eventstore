@@ -10,18 +10,19 @@ import static de.qyotta.eventstore.utils.Constants.ES_EVENT_TYPE_HEADER;
 
 import java.util.UUID;
 
-import org.apache.log4j.Logger;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import de.qyotta.eventstore.communication.EsWriter;
 import de.qyotta.eventstore.utils.HttpClientFactory;
 
 @SuppressWarnings("nls")
 public class DeleteStreamTest extends AbstractEsTest {
-   private static final Logger LOGGER = Logger.getLogger(DeleteStreamTest.class.getName());
+   private static final Logger LOGGER = LoggerFactory.getLogger(DeleteStreamTest.class.getName());
    private EsWriter writer;
 
    @Before

@@ -5,7 +5,8 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import de.qyotta.eventstore.EsContext;
 import de.qyotta.eventstore.EventStream;
@@ -15,7 +16,7 @@ import de.qyotta.eventstore.model.EventStreamReaderException;
 
 @SuppressWarnings("nls")
 public class EventStreamReaderImpl implements EventStreamReader {
-   private static final Logger LOGGER = Logger.getLogger(EventStreamReaderImpl.class.getName());
+   private static final Logger LOGGER = LoggerFactory.getLogger(EventStreamReaderImpl.class.getName());
 
    private long catchUpTerminationPeriodMillis = 30000;
    private final int intervalMillis;

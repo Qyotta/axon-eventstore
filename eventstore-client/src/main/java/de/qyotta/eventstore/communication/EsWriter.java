@@ -10,18 +10,21 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.apache.http.Consts;
 import org.apache.http.Header;
 import org.apache.http.HttpStatus;
+import org.apache.http.client.cache.HttpCacheContext;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -29,14 +32,21 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 
 import de.qyotta.eventstore.model.Event;
+import de.qyotta.eventstore.utils.HttpCacheLoggingUtil;
 
 @SuppressWarnings("nls")
 public class EsWriter {
-   private static final Logger LOGGER = Logger.getLogger(EsWriter.class.getName());
+   private static final Logger LOGGER = LoggerFactory.getLogger(EsWriter.class.getName());
    private final Gson gson;
    private final CloseableHttpClient httpclient;
+   private final String name;
 
    public EsWriter(final CloseableHttpClient httpclient) {
+      this(EsWriter.class.getSimpleName() + "_" + UUID.randomUUID(), httpclient);
+   }
+
+   public EsWriter(String name, final CloseableHttpClient httpclient) {
+      this.name = name;
       this.httpclient = httpclient;
       final GsonBuilder gsonBuilder = new GsonBuilder();
       gson = gsonBuilder.create();
@@ -62,9 +72,14 @@ public class EsWriter {
 
             LOGGER.debug("Executing request " + read(post.getEntity()
                   .getContent()));
+
+            final HttpCacheContext context = HttpCacheContext.create();
             CloseableHttpResponse response = null;
             try {
-               response = httpclient.execute(post);
+               response = httpclient.execute(post, context);
+
+               HttpCacheLoggingUtil.logCacheResponseStatus(name, context.getCacheResponseStatus());
+
                if (HttpStatus.SC_CREATED != response.getStatusLine()
                      .getStatusCode()) {
                   throw new RuntimeException("Unexpected responsecode: " + response.getStatusLine()

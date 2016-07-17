@@ -9,7 +9,8 @@ import java.util.Deque;
 import java.util.LinkedList;
 import java.util.List;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import de.qyotta.eventstore.model.Entry;
 import de.qyotta.eventstore.model.EventDeletedException;
@@ -19,7 +20,7 @@ import de.qyotta.eventstore.model.Link;
 import de.qyotta.eventstore.utils.EsUtils;
 
 public class EventStreamImpl implements EventStream {
-   private static final Logger LOGGER = Logger.getLogger(EventStreamImpl.class.getName());
+   private static final Logger LOGGER = LoggerFactory.getLogger(EventStreamImpl.class.getName());
 
    public interface EntryMatchingStrategy {
       boolean matches(final Entry e);

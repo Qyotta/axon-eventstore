@@ -15,7 +15,8 @@ import org.apache.http.HttpRequest;
 import org.apache.http.annotation.Immutable;
 import org.apache.http.impl.client.DefaultHttpRequestRetryHandler;
 import org.apache.http.protocol.HttpContext;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * {@link org.apache.http.client.HttpRequestRetryHandler} which assumes that all requested HTTP methods which should be idempotent according to RFC-2616 are in fact idempotent and can be retried.
@@ -27,7 +28,7 @@ import org.apache.log4j.Logger;
  */
 @Immutable
 public class StandardHttpRequestRetryHandler extends DefaultHttpRequestRetryHandler {
-   private static final Logger LOGGER = Logger.getLogger(StandardHttpRequestRetryHandler.class.getName());
+   private static final Logger LOGGER = LoggerFactory.getLogger(StandardHttpRequestRetryHandler.class.getName());
 
    private final Map<String, Boolean> idempotentMethods;
 

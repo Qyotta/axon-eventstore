@@ -8,12 +8,10 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.UUID;
 
-import org.apache.log4j.ConsoleAppender;
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
-import org.apache.log4j.PatternLayout;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.gson.Gson;
 import com.jayway.restassured.RestAssured;
@@ -28,12 +26,7 @@ import lombok.ToString;
 
 @SuppressWarnings("nls")
 public class AbstractEsTest {
-   static {
-      final Logger rootLogger = Logger.getRootLogger();
-      rootLogger.setLevel(Level.WARN);
-      rootLogger.addAppender(new ConsoleAppender(new PatternLayout("%-6r [%p] %c - %m%n")));
-   }
-   private static final Logger LOGGER = Logger.getLogger(AbstractEsTest.class.getName());
+   private static final Logger LOGGER = LoggerFactory.getLogger(AbstractEsTest.class.getName());
    private static final int PORT = 2113;
    private static final String BASE_URL = "http://127.0.0.1";
    private static final String STREAMS = "/streams";

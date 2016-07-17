@@ -1,5 +1,7 @@
 package de.qyotta.eventstore;
 
+import java.io.File;
+
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -14,8 +16,8 @@ import lombok.ToString;
 @Builder(toBuilder = true)
 @ToString
 @EqualsAndHashCode
-@NoArgsConstructor(access = AccessLevel.PUBLIC)
-@AllArgsConstructor(access = AccessLevel.PUBLIC)
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
 @SuppressWarnings("nls")
 public class EventStoreSettings {
    private static final String DEFAULT_PASSWORD = "changeit";
@@ -33,7 +35,7 @@ public class EventStoreSettings {
    private String password;
    private Integer connectionTimeoutMillis;
    private Integer socketTimeoutMillis;
-   private String cacheDirectory;
+   private File cacheDirectory;
    private boolean cacheResponses;
 
    public static EventStoreSettings.EventStoreSettingsBuilder withDefaults() {
@@ -45,6 +47,7 @@ public class EventStoreSettings {
             .password(DEFAULT_PASSWORD)
             .connectionTimeoutMillis(DEFAULT_CONNECTION_TIMEOUT_MILLIS)
             .socketTimeoutMillis(DEFAULT_SOCKET_TIMEOUT_MILLIS)
+            .cacheDirectory(new File(System.getProperty("java.io.tmpdir") + "/es"))
             .cacheResponses(true);
    }
 

@@ -9,7 +9,8 @@ import org.apache.http.message.BasicHeaderElementIterator;
 import org.apache.http.protocol.HTTP;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.util.Args;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Default implementation of a strategy deciding duration that a connection can remain idle.
@@ -20,7 +21,7 @@ import org.apache.log4j.Logger;
  */
 @Immutable
 public class DefaultConnectionKeepAliveStrategy implements ConnectionKeepAliveStrategy {
-   private static final Logger LOGGER = Logger.getLogger(DefaultConnectionKeepAliveStrategy.class.getName());
+   private static final Logger LOGGER = LoggerFactory.getLogger(DefaultConnectionKeepAliveStrategy.class.getName());
 
    public static final DefaultConnectionKeepAliveStrategy INSTANCE = new DefaultConnectionKeepAliveStrategy();
 

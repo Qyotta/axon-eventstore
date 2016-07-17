@@ -7,10 +7,6 @@ import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.apache.log4j.ConsoleAppender;
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
-import org.apache.log4j.PatternLayout;
 import org.axonframework.domain.EventMessage;
 import org.axonframework.eventhandling.EventBus;
 import org.axonframework.eventhandling.EventListener;
@@ -36,11 +32,6 @@ import de.qyotta.eventstore.EventStoreSettings;
 @SuppressWarnings("nls")
 public abstract class AbstractIntegrationTest {
    protected String myAggregateId;
-   static {
-      final Logger rootLogger = Logger.getRootLogger();
-      rootLogger.setLevel(Level.WARN);
-      rootLogger.addAppender(new ConsoleAppender(new PatternLayout("%-6r [%p] %c - %m%n")));
-   }
 
    protected final List<Object> actualEvents = new LinkedList<>();
    private final EventListener EVENT_LISTENER = new EventListener() {

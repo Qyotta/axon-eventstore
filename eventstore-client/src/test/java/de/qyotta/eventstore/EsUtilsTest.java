@@ -3,11 +3,12 @@ package de.qyotta.eventstore;
 import static org.junit.Assert.assertTrue;
 
 import java.util.UUID;
-import java.util.logging.Logger;
 
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import de.qyotta.eventstore.communication.EsReader;
 import de.qyotta.eventstore.communication.EsWriter;
@@ -19,7 +20,7 @@ import de.qyotta.eventstore.utils.HttpClientFactory;
 
 @SuppressWarnings("nls")
 public class EsUtilsTest extends AbstractEsTest {
-   static final Logger LOGGER = Logger.getLogger(EsUtilsTest.class.getName());
+   static final Logger LOGGER = LoggerFactory.getLogger(EsUtilsTest.class.getName());
    private EsWriter writer;
    private EsReader reader;
 
@@ -53,7 +54,7 @@ public class EsUtilsTest extends AbstractEsTest {
 
       for (final Entry entry : feed.getEntries()) {
          final long sequenceNumber = EsUtils.getEventNumber(entry);
-         LOGGER.warning("Sequence number: " + sequenceNumber);
+         LOGGER.warn("Sequence number: " + sequenceNumber);
          assertTrue(sequenceNumber > -1 && sequenceNumber < 10);
       }
    }

@@ -8,14 +8,17 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.lang.reflect.Type;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.apache.http.HttpStatus;
+import org.apache.http.client.cache.HttpCacheContext;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.util.EntityUtils;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -30,14 +33,21 @@ import de.qyotta.eventstore.model.EventDeletedException;
 import de.qyotta.eventstore.model.EventResponse;
 import de.qyotta.eventstore.model.EventStreamFeed;
 import de.qyotta.eventstore.model.EventStreamNotFoundException;
+import de.qyotta.eventstore.utils.HttpCacheLoggingUtil;
 
 @SuppressWarnings("nls")
 public class EsReader {
-   private static final Logger LOGGER = Logger.getLogger(EsReader.class.getName());
+   private static final Logger LOGGER = LoggerFactory.getLogger(EsReader.class.getName());
    private final Gson gson;
    private final CloseableHttpClient httpclient;
+   private String name;
 
    public EsReader(final CloseableHttpClient httpclient) {
+      this(EsReader.class.getSimpleName() + "_" + UUID.randomUUID(), httpclient);
+   }
+
+   public EsReader(String name, final CloseableHttpClient httpclient) {
+      this.name = name;
       this.httpclient = httpclient;
       final GsonBuilder gsonBuilder = new GsonBuilder();
       gsonBuilder.registerTypeAdapter(Event.class, new JsonDeserializer<Event>() {
@@ -96,8 +106,12 @@ public class EsReader {
          httpget.addHeader(ACCEPT_HEADER, ACCEPT_EVENTSTORE_ATOM_JSON);
 
          LOGGER.info("Executing request " + httpget.getRequestLine());
-         final CloseableHttpResponse response = httpclient.execute(httpget);
+
+         final HttpCacheContext context = HttpCacheContext.create();
+         final CloseableHttpResponse response = httpclient.execute(httpget, context);
          try {
+            HttpCacheLoggingUtil.logCacheResponseStatus(name, context.getCacheResponseStatus());
+
             final int statusCode = response.getStatusLine()
                   .getStatusCode();
             if (HttpStatus.SC_NOT_FOUND == statusCode || HttpStatus.SC_NO_CONTENT == statusCode) {
@@ -124,8 +138,11 @@ public class EsReader {
          httpget.addHeader(ACCEPT_HEADER, ACCEPT_EVENTSTORE_ATOM_JSON);
 
          LOGGER.info("Executing request " + httpget.getRequestLine());
-         final CloseableHttpResponse response = httpclient.execute(httpget);
+         final HttpCacheContext context = HttpCacheContext.create();
+         final CloseableHttpResponse response = httpclient.execute(httpget, context);
          try {
+            HttpCacheLoggingUtil.logCacheResponseStatus(name, context.getCacheResponseStatus());
+
             final int statusCode = response.getStatusLine()
                   .getStatusCode();
             if (HttpStatus.SC_GONE == statusCode) {
