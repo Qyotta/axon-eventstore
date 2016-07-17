@@ -144,7 +144,7 @@ public class EventStreamReaderImpl implements EventStreamReader {
          if (isCatchingUp) {
             return;
          }
-         LOGGER.warn("Catching up.");
+         LOGGER.info("Catching up.");
          isCatchingUp = true;
          eventStream.loadNext();
          while (eventStream.hasNext()) {

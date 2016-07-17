@@ -60,7 +60,7 @@ public class EsWriter {
             final String jsonString = gson.toJson(body);
             post.setEntity(new StringEntity(jsonString, ContentType.create(CONTENT_TYPE_JSON_EVENTS, Consts.UTF_8)));
 
-            LOGGER.warn("Executing request " + read(post.getEntity()
+            LOGGER.debug("Executing request " + read(post.getEntity()
                   .getContent()));
             CloseableHttpResponse response = null;
             try {
