@@ -10,8 +10,10 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import de.qyotta.eventstore.communication.EsReader;
-import de.qyotta.eventstore.communication.EsWriter;
+import de.qyotta.eventstore.communication.ESReader;
+import de.qyotta.eventstore.communication.ESWriter;
+import de.qyotta.eventstore.communication.EsReaderDefaultImpl;
+import de.qyotta.eventstore.communication.EsWriterDefaultImpl;
 import de.qyotta.eventstore.model.Entry;
 import de.qyotta.eventstore.model.Event;
 import de.qyotta.eventstore.model.EventStreamFeed;
@@ -21,14 +23,14 @@ import de.qyotta.eventstore.utils.HttpClientFactory;
 @SuppressWarnings("nls")
 public class EsUtilsTest extends AbstractEsTest {
    static final Logger LOGGER = LoggerFactory.getLogger(EsUtilsTest.class.getName());
-   private EsWriter writer;
-   private EsReader reader;
+   private ESWriter writer;
+   private ESReader reader;
 
    @Before
    public void setUp() {
-      writer = new EsWriter(HttpClientFactory.httpClient(EventStoreSettings.withDefaults()
+      writer = new EsWriterDefaultImpl(HttpClientFactory.httpClient(EventStoreSettings.withDefaults()
             .build()));
-      reader = new EsReader(HttpClientFactory.httpClient(EventStoreSettings.withDefaults()
+      reader = new EsReaderDefaultImpl(HttpClientFactory.httpClient(EventStoreSettings.withDefaults()
             .build()));
    }
 

@@ -16,6 +16,7 @@ import org.slf4j.LoggerFactory;
 import com.google.gson.Gson;
 import com.jayway.restassured.RestAssured;
 
+import de.qyotta.eventstore.communication.EsContextDefaultImpl;
 import de.qyotta.eventstore.model.Event;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -50,8 +51,8 @@ public class AbstractEsTest {
 
    @Before
    public final void setupTest() {
-      client = new EventStoreClient(EventStoreSettings.withDefaults()
-            .build());
+      client = new EventStoreClient(new EsContextDefaultImpl(EventStoreSettings.withDefaults()
+            .build()));
 
       streamName = getClass().getSimpleName() + "-" + UUID.randomUUID();
       streamUrl = BASE_STREAMS_URL + streamName;

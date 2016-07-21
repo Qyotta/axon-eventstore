@@ -35,23 +35,24 @@ import de.qyotta.eventstore.model.Event;
 import de.qyotta.eventstore.utils.HttpCacheLoggingUtil;
 
 @SuppressWarnings("nls")
-public class EsWriter {
-   private static final Logger LOGGER = LoggerFactory.getLogger(EsWriter.class.getName());
+public class EsWriterDefaultImpl implements ESWriter {
+   private static final Logger LOGGER = LoggerFactory.getLogger(EsWriterDefaultImpl.class.getName());
    private final Gson gson;
    private final CloseableHttpClient httpclient;
    private final String name;
 
-   public EsWriter(final CloseableHttpClient httpclient) {
-      this(EsWriter.class.getSimpleName() + "_" + UUID.randomUUID(), httpclient);
+   public EsWriterDefaultImpl(final CloseableHttpClient httpclient) {
+      this(EsWriterDefaultImpl.class.getSimpleName() + "_" + UUID.randomUUID(), httpclient);
    }
 
-   public EsWriter(String name, final CloseableHttpClient httpclient) {
+   public EsWriterDefaultImpl(String name, final CloseableHttpClient httpclient) {
       this.name = name;
       this.httpclient = httpclient;
       final GsonBuilder gsonBuilder = new GsonBuilder();
       gson = gsonBuilder.create();
    }
 
+   @Override
    public void appendEvents(final String url, final Collection<Event> collection) {
       try {
          try {
@@ -132,10 +133,12 @@ public class EsWriter {
       }
    }
 
+   @Override
    public void appendEvent(final String url, final Event event) {
       appendEvents(url, Arrays.asList(event));
    }
 
+   @Override
    public void deleteStream(final String url, boolean deletePermanently) {
       try {
          try {

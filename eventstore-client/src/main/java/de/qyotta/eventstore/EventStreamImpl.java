@@ -12,6 +12,7 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import de.qyotta.eventstore.communication.ESContext;
 import de.qyotta.eventstore.model.Entry;
 import de.qyotta.eventstore.model.EventDeletedException;
 import de.qyotta.eventstore.model.EventResponse;
@@ -26,7 +27,7 @@ public class EventStreamImpl implements EventStream {
       boolean matches(final Entry e);
    }
 
-   private final EsContext context;
+   private final ESContext context;
    private List<Link> currentLinks;
    private Deque<Entry> currentEntries;
    private EventResponse next;
@@ -36,7 +37,7 @@ public class EventStreamImpl implements EventStream {
    /**
     * Initialize this stream at the very beginning
     */
-   public EventStreamImpl(final String streamUrl, final EsContext context) {
+   public EventStreamImpl(final String streamUrl, final ESContext context) {
       this.streamUrl = streamUrl;
       this.context = context;
       loadFirstFeed();
@@ -88,22 +89,12 @@ public class EventStreamImpl implements EventStream {
       currentEntries = new LinkedList<>(feed.getEntries());
    }
 
-   /*
-    * (non-Javadoc)
-    *
-    * @see de.qyotta.eventstore.EventStream#hasNext()
-    */
    @Override
    public synchronized boolean hasNext() {
       // If 'links' contains a 'previous' link, we have elements left
       return next != null;
    }
 
-   /*
-    * (non-Javadoc)
-    *
-    * @see de.qyotta.eventstore.EventStream#next()
-    */
    @Override
    public synchronized final EventResponse next() {
       final EventResponse result = next;
@@ -138,11 +129,6 @@ public class EventStreamImpl implements EventStream {
       return false;
    }
 
-   /*
-    * (non-Javadoc)
-    *
-    * @see de.qyotta.eventstore.EventStream#peek()
-    */
    @Override
    public synchronized final EventResponse peek() {
       return next;

@@ -36,17 +36,17 @@ import de.qyotta.eventstore.model.EventStreamNotFoundException;
 import de.qyotta.eventstore.utils.HttpCacheLoggingUtil;
 
 @SuppressWarnings("nls")
-public class EsReader {
-   private static final Logger LOGGER = LoggerFactory.getLogger(EsReader.class.getName());
+public class EsReaderDefaultImpl implements ESReader {
+   private static final Logger LOGGER = LoggerFactory.getLogger(EsReaderDefaultImpl.class.getName());
    private final Gson gson;
    private final CloseableHttpClient httpclient;
    private String name;
 
-   public EsReader(final CloseableHttpClient httpclient) {
-      this(EsReader.class.getSimpleName() + "_" + UUID.randomUUID(), httpclient);
+   public EsReaderDefaultImpl(final CloseableHttpClient httpclient) {
+      this(EsReaderDefaultImpl.class.getSimpleName() + "_" + UUID.randomUUID(), httpclient);
    }
 
-   public EsReader(String name, final CloseableHttpClient httpclient) {
+   public EsReaderDefaultImpl(String name, final CloseableHttpClient httpclient) {
       this.name = name;
       this.httpclient = httpclient;
       final GsonBuilder gsonBuilder = new GsonBuilder();
@@ -83,6 +83,7 @@ public class EsReader {
       gson = gsonBuilder.create();
    }
 
+   @Override
    public EventStreamFeed readStream(final String url) {
       try {
          return loadFeed(url);
@@ -91,6 +92,7 @@ public class EsReader {
       }
    }
 
+   @Override
    public EventResponse readEvent(String url) {
       try {
          return loadEvent(url);
@@ -164,7 +166,7 @@ public class EsReader {
       }
    }
 
-   public static String read(InputStream input) throws IOException {
+   private static String read(InputStream input) throws IOException {
       try (BufferedReader buffer = new BufferedReader(new InputStreamReader(input))) {
          return buffer.lines()
                .collect(Collectors.joining("\n"));

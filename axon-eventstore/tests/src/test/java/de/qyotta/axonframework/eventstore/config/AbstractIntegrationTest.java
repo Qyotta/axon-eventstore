@@ -22,6 +22,8 @@ import org.springframework.test.context.support.AnnotationConfigContextLoader;
 import de.qyotta.axonframework.eventstore.utils.EsEventStoreUtils;
 import de.qyotta.eventstore.EventStoreClient;
 import de.qyotta.eventstore.EventStoreSettings;
+import de.qyotta.eventstore.communication.ESContext;
+import de.qyotta.eventstore.communication.EsContextDefaultImpl;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 //@formatter:off
@@ -55,7 +57,8 @@ public abstract class AbstractIntegrationTest {
       eventBus.subscribe(EVENT_LISTENER);
       settings = EventStoreSettings.withDefaults()
             .build();
-      client = new EventStoreClient(settings);
+      final ESContext esContext = new EsContextDefaultImpl(settings);
+      client = new EventStoreClient(esContext);
    }
 
    protected <T extends AbstractAnnotatedAggregateRoot<?>> void deleteEventStream(final Class<T> classOfT, final String aggregateId) {

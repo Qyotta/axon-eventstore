@@ -8,9 +8,9 @@ import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import de.qyotta.eventstore.EsContext;
 import de.qyotta.eventstore.EventStream;
 import de.qyotta.eventstore.EventStreamImpl;
+import de.qyotta.eventstore.communication.ESContext;
 import de.qyotta.eventstore.model.EventResponse;
 import de.qyotta.eventstore.model.EventStreamReaderException;
 
@@ -25,7 +25,7 @@ public class EventStreamReaderImpl implements EventStreamReader {
    private boolean isCatchingUp = false;
 
    private final String streamurl;
-   private final EsContext context;
+   private final ESContext context;
 
    private ScheduledExecutorService scheduler;
    private Runnable currentTask;
@@ -56,14 +56,14 @@ public class EventStreamReaderImpl implements EventStreamReader {
     * @param intervalMillis
     * @param callback
     */
-   public EventStreamReaderImpl(final String streamurl, final EsContext context, final int intervalMillis, final EventStreamReaderCallback callback) {
+   public EventStreamReaderImpl(final String streamurl, final ESContext context, final int intervalMillis, final EventStreamReaderCallback callback) {
       this.streamurl = streamurl;
       this.context = context;
       this.intervalMillis = intervalMillis;
       this.callback = callback;
    }
 
-   public EventStreamReaderImpl(final String streamurl, final EsContext context, final int intervalMillis, final EventStreamReaderCallback callback,
+   public EventStreamReaderImpl(final String streamurl, final ESContext context, final int intervalMillis, final EventStreamReaderCallback callback,
          final EventStreamReaderErrorCallback errorCallback) {
       this.streamurl = streamurl;
       this.context = context;

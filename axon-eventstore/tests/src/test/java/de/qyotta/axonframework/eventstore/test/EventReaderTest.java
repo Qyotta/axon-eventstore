@@ -19,6 +19,7 @@ import de.qyotta.axonframework.eventstore.utils.EsDomainEventReader;
 import de.qyotta.axonframework.eventstore.utils.EsDomainEventReader.EsDomainEventReaderCallback;
 import de.qyotta.axonframework.eventstore.utils.EsEventStoreUtils;
 import de.qyotta.eventstore.EventStoreClient;
+import de.qyotta.eventstore.communication.EsContextDefaultImpl;
 
 public class EventReaderTest extends AbstractIntegrationTest {
 
@@ -28,7 +29,7 @@ public class EventReaderTest extends AbstractIntegrationTest {
 
    @Before
    public void setUp() {
-      reader = new EsDomainEventReader(new EventStoreClient(settings), EsEventStoreUtils.getStreamName(MyTestAggregate.class.getSimpleName(), myAggregateId), -1);
+      reader = new EsDomainEventReader(new EventStoreClient(new EsContextDefaultImpl(settings)), EsEventStoreUtils.getStreamName(MyTestAggregate.class.getSimpleName(), myAggregateId), -1);
    }
 
    @After

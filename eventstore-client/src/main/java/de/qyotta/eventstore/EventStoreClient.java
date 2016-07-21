@@ -4,16 +4,17 @@ import static de.qyotta.eventstore.utils.Constants.STREAMS_PATH;
 
 import java.util.Collection;
 
+import de.qyotta.eventstore.communication.ESContext;
 import de.qyotta.eventstore.model.Event;
 import de.qyotta.eventstore.utils.EventStreamReader;
 import de.qyotta.eventstore.utils.EventStreamReaderImpl;
 import de.qyotta.eventstore.utils.EventStreamReaderImpl.EventStreamReaderCallback;
 
 public class EventStoreClient {
-   private final EsContext context;
+   private final ESContext context;
 
-   public EventStoreClient(EventStoreSettings settings) {
-      context = new EsContext(settings);
+   public EventStoreClient(ESContext context) {
+      this.context = context;
    }
 
    /**

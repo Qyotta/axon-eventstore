@@ -7,18 +7,19 @@ import static org.junit.Assert.assertTrue;
 import org.junit.Before;
 import org.junit.Test;
 
-import de.qyotta.eventstore.communication.EsReader;
+import de.qyotta.eventstore.communication.ESReader;
+import de.qyotta.eventstore.communication.EsReaderDefaultImpl;
 import de.qyotta.eventstore.model.Event;
 import de.qyotta.eventstore.model.EventStreamFeed;
 import de.qyotta.eventstore.model.Link;
 import de.qyotta.eventstore.utils.HttpClientFactory;
 
 public class EventReaderTest extends AbstractEsTest {
-   private EsReader reader;
+   private ESReader reader;
 
    @Before
    public void setUp() throws InterruptedException {
-      reader = new EsReader(HttpClientFactory.httpClient(EventStoreSettings.withDefaults()
+      reader = new EsReaderDefaultImpl(HttpClientFactory.httpClient(EventStoreSettings.withDefaults()
             .build()));
       createEvents(100);
    }

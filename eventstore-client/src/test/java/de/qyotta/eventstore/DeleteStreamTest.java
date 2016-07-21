@@ -17,17 +17,18 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import de.qyotta.eventstore.communication.EsWriter;
+import de.qyotta.eventstore.communication.ESWriter;
+import de.qyotta.eventstore.communication.EsWriterDefaultImpl;
 import de.qyotta.eventstore.utils.HttpClientFactory;
 
 @SuppressWarnings("nls")
 public class DeleteStreamTest extends AbstractEsTest {
    private static final Logger LOGGER = LoggerFactory.getLogger(DeleteStreamTest.class.getName());
-   private EsWriter writer;
+   private ESWriter writer;
 
    @Before
    public void setUp() {
-      writer = new EsWriter(HttpClientFactory.httpClient(EventStoreSettings.withDefaults()
+      writer = new EsWriterDefaultImpl(HttpClientFactory.httpClient(EventStoreSettings.withDefaults()
             .build()));
       createStream(); // create the stream we will try to delete in the tests
    }

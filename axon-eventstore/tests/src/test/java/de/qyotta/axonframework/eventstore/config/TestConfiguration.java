@@ -38,6 +38,7 @@ import de.qyotta.axonframework.eventstore.EsEventStore;
 import de.qyotta.axonframework.eventstore.domain.MyTestAggregate;
 import de.qyotta.eventstore.EventStoreClient;
 import de.qyotta.eventstore.EventStoreSettings;
+import de.qyotta.eventstore.communication.EsContextDefaultImpl;
 
 @Configuration
 @ComponentScan(basePackages = { "de.qyotta.axonframework.eventstore.config" })
@@ -46,8 +47,8 @@ public class TestConfiguration {
    @Bean
    @Autowired
    public EventStore eventStore() {
-      final EsEventStore esEventStore = new EsEventStore(new EventStoreClient(EventStoreSettings.withDefaults()
-            .build()));
+      final EsEventStore esEventStore = new EsEventStore(new EventStoreClient(new EsContextDefaultImpl(EventStoreSettings.withDefaults()
+            .build())));
       return esEventStore;
    }
 
