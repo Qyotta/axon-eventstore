@@ -18,7 +18,6 @@ import com.google.gson.Gson;
 
 import de.qyotta.axonframework.eventstore.utils.SerializableDomainEvent;
 import de.qyotta.eventstore.EventStoreClient;
-import de.qyotta.eventstore.EventStoreSettings;
 import de.qyotta.eventstore.EventStream;
 import de.qyotta.eventstore.model.Event;
 
@@ -27,8 +26,8 @@ public class EsEventStore implements EventStore {
    private final EventStoreClient client;
    Gson gson = new Gson();
 
-   public EsEventStore(final EventStoreSettings settings) {
-      this.client = new EventStoreClient(settings);
+   public EsEventStore(final EventStoreClient client) {
+      this.client = client;
    }
 
    @Override
@@ -69,7 +68,7 @@ public class EsEventStore implements EventStore {
             .entrySet()) {
          metaData.put(entry.getKey(), entry.getValue());
       }
-      String serialize = serialize(message.getPayload());
+      final String serialize = serialize(message.getPayload());
       return Event.builder()
             .eventId(message.getIdentifier())
             .eventType(message.getPayloadType()

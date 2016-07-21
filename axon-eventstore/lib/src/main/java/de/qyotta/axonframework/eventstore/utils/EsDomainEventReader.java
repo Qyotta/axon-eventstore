@@ -5,7 +5,6 @@ import java.util.Date;
 import org.axonframework.domain.DomainEventMessage;
 
 import de.qyotta.eventstore.EventStoreClient;
-import de.qyotta.eventstore.EventStoreSettings;
 import de.qyotta.eventstore.model.EventResponse;
 import de.qyotta.eventstore.utils.EventStreamReader;
 import de.qyotta.eventstore.utils.EventStreamReaderImpl.EventStreamReaderCallback;
@@ -28,8 +27,8 @@ public class EsDomainEventReader implements EventStreamReader {
       this.callback = callback;
    }
 
-   public EsDomainEventReader(final EventStoreSettings settings, final String streamName, final int intervalMillis) {
-      this.reader = new EventStoreClient(settings).newEventStreamReader(streamName, intervalMillis, new EventStreamReaderCallback() {
+   public EsDomainEventReader(final EventStoreClient client, final String streamName, final int intervalMillis) {
+      this.reader = client.newEventStreamReader(streamName, intervalMillis, new EventStreamReaderCallback() {
          @Override
          public void readEvent(EventResponse event) {
             callback.onEvent(EsEventStoreUtils.domainEventMessageOf(event));

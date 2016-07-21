@@ -36,6 +36,7 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 import de.qyotta.axonframework.eventstore.EsEventStore;
 import de.qyotta.axonframework.eventstore.domain.MyTestAggregate;
+import de.qyotta.eventstore.EventStoreClient;
 import de.qyotta.eventstore.EventStoreSettings;
 
 @Configuration
@@ -45,8 +46,8 @@ public class TestConfiguration {
    @Bean
    @Autowired
    public EventStore eventStore() {
-      final EsEventStore esEventStore = new EsEventStore(EventStoreSettings.withDefaults()
-            .build());
+      final EsEventStore esEventStore = new EsEventStore(new EventStoreClient(EventStoreSettings.withDefaults()
+            .build()));
       return esEventStore;
    }
 
