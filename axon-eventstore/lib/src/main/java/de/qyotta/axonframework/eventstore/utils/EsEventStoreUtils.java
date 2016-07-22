@@ -29,7 +29,8 @@ public final class EsEventStoreUtils {
    @SuppressWarnings({ "rawtypes", "unchecked" })
    public static DomainEventMessage domainEventMessageOf(final EventResponse eventResponse) {
       try {
-         final Gson gson = new Gson();
+         final Gson gson = createGson();
+
          final SerializableDomainEvent data = gson.fromJson(eventResponse.getContent()
                .getData(), SerializableDomainEvent.class);
 
@@ -45,6 +46,15 @@ public final class EsEventStoreUtils {
          throw new RuntimeException(e);
       }
 
+   }
+
+   private static Gson createGson() {
+      //// final RuntimeTypeAdapterFactory<Entity> typeFactory = RuntimeTypeAdapterFactory.of(Entity.class, "type")
+      //// .registerSubtype(UserEntity.class);
+      // final Gson gson = new GsonBuilder().registerTypeAdapterFactory(typeFactory)
+      // .create();
+      // return gson;
+      return new Gson();
    }
 
 }

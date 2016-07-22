@@ -7,11 +7,12 @@ public class EsContextInMemoryImpl implements ESContext {
    private final ESReader reader;
    private final EventStoreSettings settings;
    private final ESWriter writer;
+   private final EsReaderWriterInMemoryImpl esReaderWriterInMemoryImpl;
 
    public EsContextInMemoryImpl(final EventStoreSettings settings) {
       this.settings = settings;
 
-      final EsReaderWriterInMemoryImpl esReaderWriterInMemoryImpl = new EsReaderWriterInMemoryImpl();
+      esReaderWriterInMemoryImpl = new EsReaderWriterInMemoryImpl();
       reader = esReaderWriterInMemoryImpl;
       writer = esReaderWriterInMemoryImpl;
    }
@@ -29,6 +30,10 @@ public class EsContextInMemoryImpl implements ESContext {
    @Override
    public ESWriter getWriter() {
       return writer;
+   }
+
+   public void reset() {
+      esReaderWriterInMemoryImpl.reset();
    }
 
 }

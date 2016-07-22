@@ -24,7 +24,7 @@ import de.qyotta.eventstore.model.Event;
 @SuppressWarnings({ "rawtypes" })
 public class EsEventStore implements EventStore {
    private final EventStoreClient client;
-   Gson gson = new Gson();
+   private final Gson gson = new Gson();
 
    public EsEventStore(final EventStoreClient client) {
       this.client = client;
