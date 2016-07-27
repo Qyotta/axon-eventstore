@@ -1,6 +1,7 @@
 package de.qyotta.eventstore.communication;
 
 import static de.qyotta.eventstore.utils.Constants.CONTENT_TYPE_HEADER;
+import static de.qyotta.eventstore.utils.Constants.CONTENT_TYPE_JSON;
 import static de.qyotta.eventstore.utils.Constants.CONTENT_TYPE_JSON_EVENTS;
 import static de.qyotta.eventstore.utils.Constants.ES_HARD_DELETE_HEADER;
 
@@ -10,6 +11,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -162,4 +164,45 @@ public class EsWriterDefaultImpl implements ESWriter {
          throw new RuntimeException("Could not delete stream with url: " + url, e);
       }
    }
+
+   @Override
+   public void createLinkedProjection(String host, String projectionName, String... includedStreams) {
+      final String url = host + "/projections/continuous?name=" + projectionName + "&emit=yes&checkpoints=yes&enabled=yes";
+      try {
+         try {
+            final HttpPost post = new HttpPost(url);
+            post.addHeader(CONTENT_TYPE_HEADER, CONTENT_TYPE_JSON);
+            post.setEntity(new StringEntity(getProjectionForStreams(includedStreams), ContentType.create(CONTENT_TYPE_JSON_EVENTS, Consts.UTF_8)));
+            LOGGER.info("Executing request " + post.getRequestLine());
+            final CloseableHttpResponse response = httpclient.execute(post);
+            try {
+               if (HttpStatus.SC_NO_CONTENT != response.getStatusLine()
+                     .getStatusCode()) {
+                  throw new RuntimeException("Could not delete stream with url: " + url);
+               }
+            } finally {
+               response.close();
+            }
+         } finally {
+            httpclient.close();
+         }
+      } catch (final IOException e) {
+         throw new RuntimeException("Could not delete stream with url: " + url, e);
+      }
+   }
+
+   private String getProjectionForStreams(String[] includedStreams) {
+      final StringBuilder sb = new StringBuilder("fromStreams([");
+      final Iterator<String> iterator = Arrays.asList(includedStreams)
+            .iterator();
+      while (iterator.hasNext()) {
+         sb.append("'" + iterator.next() + "'");
+         if (iterator.hasNext()) {
+            sb.append(",");
+         }
+      }
+      sb.append("])");
+      return sb.toString();
+   }
+
 }

@@ -30,8 +30,9 @@ public class AbstractEsTest {
    private static final Logger LOGGER = LoggerFactory.getLogger(AbstractEsTest.class.getName());
    private static final int PORT = 2113;
    private static final String BASE_URL = "http://127.0.0.1";
+   protected static final String HOST = BASE_URL + ":" + PORT;
    private static final String STREAMS = "/streams";
-   protected static String BASE_STREAMS_URL = BASE_URL + ":" + PORT + STREAMS + "/";
+   protected static String BASE_STREAMS_URL = HOST + STREAMS + "/";
    protected Map<String, Event> expectedEvents;
    protected String streamName;
    protected EventStoreClient client;

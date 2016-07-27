@@ -33,6 +33,12 @@ public class EventStoreClient {
       return new EventStreamImpl(streamUrlForName(streamName), context);
    }
 
+   public void createProjection(String name, final String... includedStreams) {
+      context.getWriter()
+            .createLinkedProjection(context.getSettings()
+                  .getHost(), name, includedStreams);
+   }
+
    public void appendEvent(final String streamName, final Event event) {
       context.getWriter()
             .appendEvent(streamUrlForName(streamName), event);

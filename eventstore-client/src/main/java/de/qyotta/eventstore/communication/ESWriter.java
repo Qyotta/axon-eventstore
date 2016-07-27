@@ -12,4 +12,6 @@ public interface ESWriter {
 
    void deleteStream(String url, boolean deletePermanently);
 
+   void createLinkedProjection(String host, String name, final String... includedStreams);
+
 }

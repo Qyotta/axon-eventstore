@@ -39,6 +39,11 @@ public class EsReaderWriterInMemoryImpl implements ESReader, ESWriter {
       throw new UnsupportedOperationException("In Memory version is not implemented yet.");
    }
 
+   @Override
+   public void createLinkedProjection(String host, String name, String... includedStreams) {
+      throw new UnsupportedOperationException("In Memory version is not implemented yet.");
+   }
+
    public void reset() {
       synchronizedMap.clear();
    }
