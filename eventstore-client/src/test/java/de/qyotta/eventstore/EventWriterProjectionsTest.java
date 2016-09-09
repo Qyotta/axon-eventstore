@@ -1,16 +1,5 @@
 package de.qyotta.eventstore;
 
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
-
-import java.util.UUID;
-
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-
 import de.qyotta.eventstore.communication.ESReader;
 import de.qyotta.eventstore.communication.ESWriter;
 import de.qyotta.eventstore.communication.EsReaderDefaultImpl;
@@ -20,6 +9,18 @@ import de.qyotta.eventstore.model.EventResponse;
 import de.qyotta.eventstore.model.EventStreamFeed;
 import de.qyotta.eventstore.model.Link;
 import de.qyotta.eventstore.utils.HttpClientFactory;
+
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
+
+import java.util.UUID;
+
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Ignore;
+import org.junit.Test;
 
 @SuppressWarnings("nls")
 public class EventWriterProjectionsTest extends AbstractEsTest {
@@ -73,6 +74,7 @@ public class EventWriterProjectionsTest extends AbstractEsTest {
    }
 
    @Test
+   @Ignore
    public void shouldCreateLinkedProjection() {
       writer.createLinkedProjection(HOST, "MY_TEST_STREAM", "conversion-e8dd68d4-2b6b-4736-9084-c213dd987284", "conversionlogs-63e8d038-286b-3e9c-b73a-c97e8cf20dec");
    }

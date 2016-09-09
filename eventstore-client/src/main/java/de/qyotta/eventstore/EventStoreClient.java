@@ -1,14 +1,14 @@
 package de.qyotta.eventstore;
 
-import static de.qyotta.eventstore.utils.Constants.STREAMS_PATH;
-
-import java.util.Collection;
-
 import de.qyotta.eventstore.communication.ESContext;
 import de.qyotta.eventstore.model.Event;
 import de.qyotta.eventstore.utils.EventStreamReader;
 import de.qyotta.eventstore.utils.EventStreamReaderImpl;
 import de.qyotta.eventstore.utils.EventStreamReaderImpl.EventStreamReaderCallback;
+
+import static de.qyotta.eventstore.utils.Constants.STREAMS_PATH;
+
+import java.util.Collection;
 
 public class EventStoreClient {
    private final ESContext context;
@@ -27,6 +27,10 @@ public class EventStoreClient {
     */
    public EventStreamReader newEventStreamReader(final String streamName, final int intervalMillis, final EventStreamReaderCallback callback) {
       return new EventStreamReaderImpl(streamUrlForName(streamName), context, intervalMillis, callback);
+   }
+
+   public EventStreamReader newEventStreamReader(final String streamName, final int intervalMillis, final EventStreamReaderCallback callback, final EventStreamReaderImpl.EventStreamReaderErrorCallback errorCallback) {
+      return new EventStreamReaderImpl(streamUrlForName(streamName), context, intervalMillis, callback, errorCallback);
    }
 
    public EventStream readEvents(final String streamName) {
