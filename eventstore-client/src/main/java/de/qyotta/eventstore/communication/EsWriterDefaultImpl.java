@@ -65,8 +65,8 @@ public class EsWriterDefaultImpl implements ESWriter {
                final JsonObject o = new JsonObject();
                o.addProperty("eventId", e.getEventId());
                o.addProperty("eventType", e.getEventType());
-               o.add("data", gson.fromJson(e.getData(), JsonObject.class));
                o.add("metadata", gson.fromJson(e.getMetadata(), JsonObject.class));
+               o.add("data", gson.fromJson(e.getData(), JsonObject.class));
                body.add(o);
             }
 

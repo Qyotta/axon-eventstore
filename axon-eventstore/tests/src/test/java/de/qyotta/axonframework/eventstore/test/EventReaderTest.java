@@ -58,7 +58,7 @@ public class EventReaderTest extends AbstractIntegrationTest {
       }
       final EsDomainEventReaderCallback callback = mock(EsDomainEventReaderCallback.class);
       reader.setCallback(callback);
-      reader.start("75@mytestaggregate-" + myAggregateId); //$NON-NLS-1$
+      reader.start("75@domain-mytestaggregate-" + myAggregateId); //$NON-NLS-1$
       verify(callback, times(1)).onEvent(any());
    }
 
@@ -70,7 +70,7 @@ public class EventReaderTest extends AbstractIntegrationTest {
       }
       final EsDomainEventReaderCallback callback = mock(EsDomainEventReaderCallback.class);
       reader.setCallback(callback);
-      reader.start("72@mytestaggregate-" + myAggregateId); //$NON-NLS-1$
+      reader.start("72@domain-mytestaggregate-" + myAggregateId); //$NON-NLS-1$
       verify(callback, times(27)).onEvent(any());
    }
 }

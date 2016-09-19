@@ -23,25 +23,24 @@ public final class EsEventStoreUtils {
    }.getType();
 
    public static final String getStreamName(String type, Object identifier) {
-      return type.toLowerCase() + "-" + identifier.toString();
+      return "domain-" + type.toLowerCase() + "-" + identifier.toString();
    }
 
    @SuppressWarnings({ "rawtypes", "unchecked" })
    public static DomainEventMessage domainEventMessageOf(final EventResponse eventResponse) {
       try {
          final Gson gson = createGson();
-
-         final SerializableDomainEvent data = gson.fromJson(eventResponse.getContent()
-               .getData(), SerializableDomainEvent.class);
-
          final Class<?> payloadType = Class.forName(eventResponse.getContent()
                .getEventType());
-         final Object payload = gson.fromJson(data.getPayload(), payloadType);
+         final Object payload = gson.fromJson(eventResponse.getContent()
+               .getData(), payloadType);
 
          final Map<String, ?> metaData = gson.fromJson(eventResponse.getContent()
                .getMetadata(), METADATA_TYPE);
-         return new GenericDomainEventMessage(eventResponse.getTitle(), new DateTime(eventResponse.getUpdated(), DateTimeZone.UTC), data.getAggregateIdentifier(), eventResponse.getContent()
-               .getEventNumber(), payload, new MetaData(metaData));
+
+         final Map<String, ?> eventMetadata = (Map<String, ?>) metaData.get(Constants.EVENT_METADATA_KEY);
+         return new GenericDomainEventMessage(eventResponse.getTitle(), new DateTime(eventResponse.getUpdated(), DateTimeZone.UTC), metaData.get(Constants.AGGREGATE_ID_KEY), eventResponse.getContent()
+               .getEventNumber(), payload, new MetaData(eventMetadata));
       } catch (final ClassNotFoundException e) {
          throw new RuntimeException(e);
       }

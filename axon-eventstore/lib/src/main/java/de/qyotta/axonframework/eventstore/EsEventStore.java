@@ -16,7 +16,7 @@ import org.axonframework.serializer.Revision;
 
 import com.google.gson.Gson;
 
-import de.qyotta.axonframework.eventstore.utils.SerializableDomainEvent;
+import de.qyotta.axonframework.eventstore.utils.Constants;
 import de.qyotta.eventstore.EventStoreClient;
 import de.qyotta.eventstore.EventStream;
 import de.qyotta.eventstore.model.Event;
@@ -57,28 +57,29 @@ public class EsEventStore implements EventStore {
             throw new EventStreamNotFoundException(type, identifier);
          }
       } catch (final de.qyotta.eventstore.model.EventStreamNotFoundException e) {
-         throw new EventStreamNotFoundException(type, identifier);
+         throw new EventStreamNotFoundException(String.format("Aggregate of type [%s] with identifier [%s] cannot be found.", type, identifier), e); //$NON-NLS-1$
       }
       return stream;
    }
 
    private Event toEvent(final DomainEventMessage message) {
       final HashMap<String, Object> metaData = new HashMap<>();
+      final HashMap<String, Object> eventMetaData = new HashMap<>();
       for (final Entry<String, Object> entry : message.getMetaData()
             .entrySet()) {
-         metaData.put(entry.getKey(), entry.getValue());
+         eventMetaData.put(entry.getKey(), entry.getValue());
       }
-      final String serialize = serialize(message.getPayload());
+
+      metaData.put(Constants.AGGREGATE_ID_KEY, message.getAggregateIdentifier());
+      metaData.put(Constants.PAYLOAD_REVISION_KEY, getPayloadRevision(message.getPayloadType()));
+      metaData.put(Constants.EVENT_METADATA_KEY, eventMetaData);
+
       return Event.builder()
             .eventId(message.getIdentifier())
             .eventType(message.getPayloadType()
                   .getName())
-            .data(serialize(SerializableDomainEvent.builder()
-                  .aggregateIdentifier(message.getAggregateIdentifier())
-                  .payload(serialize)
-                  .payloadRevision(getPayloadRevision(message.getPayloadType()))
-                  .build()))
-            .metadata(serialize(message.getMetaData()))
+            .data(serialize(message.getPayload()))
+            .metadata(serialize(metaData))
             .build();
    }
 
