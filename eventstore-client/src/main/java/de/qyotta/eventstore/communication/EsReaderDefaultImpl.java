@@ -107,8 +107,6 @@ public class EsReaderDefaultImpl implements ESReader {
          final HttpGet httpget = new HttpGet(url);
          httpget.addHeader(ACCEPT_HEADER, ACCEPT_EVENTSTORE_ATOM_JSON);
 
-         LOGGER.info("Executing request " + httpget.getRequestLine());
-
          final HttpCacheContext context = HttpCacheContext.create();
          final CloseableHttpResponse response = httpclient.execute(httpget, context);
          try {

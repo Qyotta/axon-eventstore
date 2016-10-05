@@ -143,6 +143,18 @@ public class EventStreamReaderTest extends AbstractEsTest {
       verifyNoMoreInteractions(callback);
    }
 
+   @Test
+   public void shouldCatchUpAfterRestart() throws InterruptedException {
+      createEvents(75);
+      final EventStreamReaderCallback callback = mock(EventStreamReaderCallback.class);
+      final EventStreamReader eventStreamReader = client.newEventStreamReader(streamName, -1, callback);
+      eventStreamReader.start(13 + "@" + streamName);
+      verify(callback, times(61)).readEvent(any(EventResponse.class));
+      createEvents(55);
+      eventStreamReader.catchUp();
+      verify(callback, times(116)).readEvent(any(EventResponse.class));
+   }
+
    private String prepareAnEventInStream() {
       final Event given = Event.builder()
             .eventId(UUID.randomUUID()
@@ -155,7 +167,7 @@ public class EventStreamReaderTest extends AbstractEsTest {
       client.appendEvent(streamName, given);
       return client.readEvents(streamName)
             .next()
-            .getId();
+            .getTitle();
    }
 
 }

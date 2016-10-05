@@ -31,18 +31,17 @@ public class EventStreamReaderImpl implements EventStreamReader {
    private Runnable currentTask;
 
    private final EventStreamReaderCallback callback;
-   private EventStreamReaderErrorCallback errorCallback = new EventStreamReaderErrorCallback() {
-      @Override
-      public void onError(String errorMessage, Throwable cause) {
-         LOGGER.error(errorMessage, cause);
-         throw new EventStreamReaderException(cause);
-      }
+   private EventStreamReaderErrorCallback errorCallback = (errorMessage, cause) -> {
+      LOGGER.error(errorMessage, cause);
+      throw new EventStreamReaderException(cause);
    };
 
+   @FunctionalInterface
    public interface EventStreamReaderCallback {
       void readEvent(final EventResponse event);
    }
 
+   @FunctionalInterface
    public interface EventStreamReaderErrorCallback {
       void onError(final String errorMessage, final Throwable cause);
    }
@@ -145,7 +144,6 @@ public class EventStreamReaderImpl implements EventStreamReader {
          if (isCatchingUp) {
             return;
          }
-         LOGGER.info("Catching up.");
          isCatchingUp = true;
          eventStream.loadNext();
          while (eventStream.hasNext()) {
