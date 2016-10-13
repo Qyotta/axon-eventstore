@@ -18,9 +18,9 @@ import org.slf4j.LoggerFactory;
 import com.jayway.awaitility.Duration;
 
 @SuppressWarnings("nls")
-public class EventstoreProvider {
+public class InMemoryEventstoreProvider {
 
-   private static final Logger LOGGER = LoggerFactory.getLogger(EventstoreProvider.class.getName());
+   private static final Logger LOGGER = LoggerFactory.getLogger(InMemoryEventstoreProvider.class.getName());
 
    private static final String EVENTSTORE_DIR = "/tmp/eventstore/";
    private static final String EVENTSTORE_VERSION = "3.9.1";

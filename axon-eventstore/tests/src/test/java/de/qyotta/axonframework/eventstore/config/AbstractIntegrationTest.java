@@ -24,7 +24,7 @@ import org.springframework.test.context.support.AnnotationConfigContextLoader;
 import de.qyotta.axonframework.eventstore.utils.EsEventStoreUtils;
 import de.qyotta.eventstore.EventStoreClient;
 import de.qyotta.eventstore.EventStoreSettings;
-import de.qyotta.eventstore.EventstoreProvider;
+import de.qyotta.eventstore.InMemoryEventstoreProvider;
 import de.qyotta.eventstore.communication.ESContext;
 import de.qyotta.eventstore.communication.EsContextDefaultImpl;
 
@@ -36,7 +36,7 @@ import de.qyotta.eventstore.communication.EsContextDefaultImpl;
 //@formatter:on
 @SuppressWarnings("nls")
 public abstract class AbstractIntegrationTest {
-   private static final EventstoreProvider EVENT_STORE_PROVIDER = new EventstoreProvider();
+   private static final InMemoryEventstoreProvider EVENT_STORE_PROVIDER = new InMemoryEventstoreProvider();
    private static final int PORT = 4445;
    private static final String BASE_URL = "http://127.0.0.1";
    protected static final String HOST = BASE_URL + ":" + PORT;

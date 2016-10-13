@@ -22,6 +22,7 @@
     <commons.io.version>2.4</commons.io.version>
     <cpsuite.version>1.2.6</cpsuite.version>
     <awaitility.version>1.7.0</awaitility.version>
+    <maven.jar.plugin.version>2.4</maven.jar.plugin.version>
   </properties>
   <profiles>
     <profile>
