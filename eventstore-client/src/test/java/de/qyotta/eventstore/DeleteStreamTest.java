@@ -29,6 +29,7 @@ public class DeleteStreamTest extends AbstractEsTest {
    @Before
    public void setUp() {
       writer = new EsWriterDefaultImpl(HttpClientFactory.httpClient(EventStoreSettings.withDefaults()
+            .host(HOST)
             .build()));
       createStream(); // create the stream we will try to delete in the tests
    }
