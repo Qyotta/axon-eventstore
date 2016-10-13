@@ -42,12 +42,14 @@ import de.qyotta.eventstore.communication.EsContextDefaultImpl;
 
 @Configuration
 @ComponentScan(basePackages = { "de.qyotta.axonframework.eventstore.config" })
+@SuppressWarnings("nls")
 public class TestConfiguration {
 
    @Bean
    @Autowired
    public EventStore eventStore() {
       final EsEventStore esEventStore = new EsEventStore(new EventStoreClient(new EsContextDefaultImpl(EventStoreSettings.withDefaults()
+            .host("http://127.0.0.1:4445")
             .build())));
       return esEventStore;
    }

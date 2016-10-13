@@ -22,8 +22,8 @@ public final class EsEventStoreUtils {
       //
    }.getType();
 
-   public static final String getStreamName(String type, Object identifier) {
-      return "domain-" + type.toLowerCase() + "-" + identifier.toString();
+   public static final String getStreamName(final String type, final Object identifier, final String prefix) {
+      return prefix + "-" + type.toLowerCase() + "-" + identifier.toString();
    }
 
    @SuppressWarnings({ "rawtypes", "unchecked" })

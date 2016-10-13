@@ -21,6 +21,7 @@ import de.qyotta.axonframework.eventstore.utils.EsEventStoreUtils;
 import de.qyotta.eventstore.EventStoreClient;
 import de.qyotta.eventstore.communication.EsContextDefaultImpl;
 
+@SuppressWarnings("nls")
 public class EventReaderTest extends AbstractIntegrationTest {
 
    @Autowired
@@ -29,7 +30,7 @@ public class EventReaderTest extends AbstractIntegrationTest {
 
    @Before
    public void setUp() {
-      reader = new EsDomainEventReader(new EventStoreClient(new EsContextDefaultImpl(settings)), EsEventStoreUtils.getStreamName(MyTestAggregate.class.getSimpleName(), myAggregateId), -1);
+      reader = new EsDomainEventReader(new EventStoreClient(new EsContextDefaultImpl(settings)), EsEventStoreUtils.getStreamName(MyTestAggregate.class.getSimpleName(), myAggregateId, "domain"), -1);
    }
 
    @After

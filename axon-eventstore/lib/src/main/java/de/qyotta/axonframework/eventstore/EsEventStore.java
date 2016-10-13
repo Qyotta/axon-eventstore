@@ -21,10 +21,16 @@ import de.qyotta.eventstore.EventStoreClient;
 import de.qyotta.eventstore.EventStream;
 import de.qyotta.eventstore.model.Event;
 
+/**
+ * @author satan
+ *
+ */
 @SuppressWarnings({ "rawtypes" })
 public class EsEventStore implements EventStore {
    private final EventStoreClient client;
    private final Gson gson = new Gson();
+   @SuppressWarnings("nls")
+   private String prefix = "domain";
 
    public EsEventStore(final EventStoreClient client) {
       this.client = client;
@@ -43,7 +49,7 @@ public class EsEventStore implements EventStore {
                .add(toEvent(message));
       }
       for (final Object identifier : identifierToEventStoreEvents.keySet()) {
-         client.appendEvents(getStreamName(type, identifier), identifierToEventStoreEvents.get(identifier));
+         client.appendEvents(getStreamName(type, identifier, prefix), identifierToEventStoreEvents.get(identifier));
       }
    }
 
@@ -51,7 +57,7 @@ public class EsEventStore implements EventStore {
    public DomainEventStream readEvents(String type, Object identifier) {
       DomainEventStream stream;
       try {
-         final EventStream eventStoreEventStream = client.readEvents(getStreamName(type, identifier));
+         final EventStream eventStoreEventStream = client.readEvents(getStreamName(type, identifier, prefix));
          stream = new EsEventStreamBackedDomainEventStream(eventStoreEventStream);
          if (!stream.hasNext()) {
             throw new EventStreamNotFoundException(type, identifier);
@@ -60,6 +66,16 @@ public class EsEventStore implements EventStore {
          throw new EventStreamNotFoundException(String.format("Aggregate of type [%s] with identifier [%s] cannot be found.", type, identifier), e); //$NON-NLS-1$
       }
       return stream;
+   }
+
+   /**
+    * Set the prefix to use for domain-event-streams. This defaults to 'domain'.
+    *
+    * @param prefix
+    */
+   public void setPrefix(final String prefix) {
+      this.prefix = prefix;
+
    }
 
    private Event toEvent(final DomainEventMessage message) {
