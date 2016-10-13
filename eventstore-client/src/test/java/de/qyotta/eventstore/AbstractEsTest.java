@@ -29,7 +29,7 @@ import lombok.ToString;
 @SuppressWarnings("nls")
 public class AbstractEsTest {
 
-   private static final EventstoreProvider EVENT_STORE_PROVIDER = new EventstoreProvider();
+   private static final InMemoryEventstoreProvider EVENT_STORE_PROVIDER = new InMemoryEventstoreProvider();
    private static final Logger LOGGER = LoggerFactory.getLogger(AbstractEsTest.class.getName());
    private static final int PORT = 4445;
    private static final String BASE_URL = "http://127.0.0.1";

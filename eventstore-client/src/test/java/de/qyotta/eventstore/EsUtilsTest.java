@@ -29,8 +29,10 @@ public class EsUtilsTest extends AbstractEsTest {
    @Before
    public void setUp() {
       writer = new EsWriterDefaultImpl(HttpClientFactory.httpClient(EventStoreSettings.withDefaults()
+            .host(HOST)
             .build()));
       reader = new EsReaderDefaultImpl(HttpClientFactory.httpClient(EventStoreSettings.withDefaults()
+            .host(HOST)
             .build()));
    }
 

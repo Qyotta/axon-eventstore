@@ -30,6 +30,7 @@ public class EventStreamTest extends AbstractEsTest {
    @Before
    public void setUp() {
       client = new EventStoreClient(new EsContextDefaultImpl(EventStoreSettings.withDefaults()
+            .host(HOST)
             .build()));
 
       streamName = EventStreamTest.class.getSimpleName() + "-" + UUID.randomUUID();

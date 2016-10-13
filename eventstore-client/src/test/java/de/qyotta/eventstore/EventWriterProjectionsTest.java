@@ -1,15 +1,5 @@
 package de.qyotta.eventstore;
 
-import de.qyotta.eventstore.communication.ESReader;
-import de.qyotta.eventstore.communication.ESWriter;
-import de.qyotta.eventstore.communication.EsReaderDefaultImpl;
-import de.qyotta.eventstore.communication.EsWriterDefaultImpl;
-import de.qyotta.eventstore.model.Event;
-import de.qyotta.eventstore.model.EventResponse;
-import de.qyotta.eventstore.model.EventStreamFeed;
-import de.qyotta.eventstore.model.Link;
-import de.qyotta.eventstore.utils.HttpClientFactory;
-
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
@@ -22,6 +12,16 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 
+import de.qyotta.eventstore.communication.ESReader;
+import de.qyotta.eventstore.communication.ESWriter;
+import de.qyotta.eventstore.communication.EsReaderDefaultImpl;
+import de.qyotta.eventstore.communication.EsWriterDefaultImpl;
+import de.qyotta.eventstore.model.Event;
+import de.qyotta.eventstore.model.EventResponse;
+import de.qyotta.eventstore.model.EventStreamFeed;
+import de.qyotta.eventstore.model.Link;
+import de.qyotta.eventstore.utils.HttpClientFactory;
+
 @SuppressWarnings("nls")
 public class EventWriterProjectionsTest extends AbstractEsTest {
    private ESWriter writer;
@@ -30,8 +30,10 @@ public class EventWriterProjectionsTest extends AbstractEsTest {
    @Before
    public void setUp() {
       writer = new EsWriterDefaultImpl(HttpClientFactory.httpClient(EventStoreSettings.withDefaults()
+            .host(HOST)
             .build()));
       reader = new EsReaderDefaultImpl(HttpClientFactory.httpClient(EventStoreSettings.withDefaults()
+            .host(HOST)
             .build()));
    }
 
