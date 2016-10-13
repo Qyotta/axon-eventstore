@@ -8,6 +8,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.UUID;
 
+import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.slf4j.Logger;
@@ -27,8 +28,10 @@ import lombok.ToString;
 
 @SuppressWarnings("nls")
 public class AbstractEsTest {
+
+   private static final EventstoreProvider EVENT_STORE_PROVIDER = new EventstoreProvider();
    private static final Logger LOGGER = LoggerFactory.getLogger(AbstractEsTest.class.getName());
-   private static final int PORT = 2113;
+   private static final int PORT = 4445;
    private static final String BASE_URL = "http://127.0.0.1";
    protected static final String HOST = BASE_URL + ":" + PORT;
    private static final String STREAMS = "/streams";
@@ -44,15 +47,24 @@ public class AbstractEsTest {
    }
 
    @BeforeClass
-   public static void setupClass() {
+   public static void beforeClass() {
       RestAssured.baseURI = BASE_URL;
       RestAssured.port = PORT;
       RestAssured.basePath = STREAMS;
+      if (!EVENT_STORE_PROVIDER.isRunning()) {
+         EVENT_STORE_PROVIDER.start();
+      }
+   }
+
+   @AfterClass
+   public static void afterClass() {
+      EVENT_STORE_PROVIDER.stop();
    }
 
    @Before
    public final void setupTest() {
       client = new EventStoreClient(new EsContextDefaultImpl(EventStoreSettings.withDefaults()
+            .host(HOST)
             .build()));
 
       streamName = getClass().getSimpleName() + "-" + UUID.randomUUID();

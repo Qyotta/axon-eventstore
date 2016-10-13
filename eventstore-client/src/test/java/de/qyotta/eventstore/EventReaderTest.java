@@ -20,6 +20,7 @@ public class EventReaderTest extends AbstractEsTest {
    @Before
    public void setUp() throws InterruptedException {
       reader = new EsReaderDefaultImpl(HttpClientFactory.httpClient(EventStoreSettings.withDefaults()
+            .host(HOST)
             .build()));
       createEvents(100);
    }

@@ -12,7 +12,9 @@ import org.axonframework.eventhandling.EventBus;
 import org.axonframework.eventhandling.EventListener;
 import org.axonframework.eventsourcing.annotation.AbstractAnnotatedAggregateRoot;
 import org.axonframework.eventstore.EventStore;
+import org.junit.AfterClass;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
@@ -22,6 +24,7 @@ import org.springframework.test.context.support.AnnotationConfigContextLoader;
 import de.qyotta.axonframework.eventstore.utils.EsEventStoreUtils;
 import de.qyotta.eventstore.EventStoreClient;
 import de.qyotta.eventstore.EventStoreSettings;
+import de.qyotta.eventstore.EventstoreProvider;
 import de.qyotta.eventstore.communication.ESContext;
 import de.qyotta.eventstore.communication.EsContextDefaultImpl;
 
@@ -33,6 +36,10 @@ import de.qyotta.eventstore.communication.EsContextDefaultImpl;
 //@formatter:on
 @SuppressWarnings("nls")
 public abstract class AbstractIntegrationTest {
+   private static final EventstoreProvider EVENT_STORE_PROVIDER = new EventstoreProvider();
+   private static final int PORT = 4445;
+   private static final String BASE_URL = "http://127.0.0.1";
+   protected static final String HOST = BASE_URL + ":" + PORT;
    protected String myAggregateId;
 
    protected final List<Object> actualEvents = new LinkedList<>();
@@ -50,19 +57,32 @@ public abstract class AbstractIntegrationTest {
    private EventStoreClient client;
    protected EventStoreSettings settings;
 
+   @BeforeClass
+   public static void beforeClass() {
+      if (!EVENT_STORE_PROVIDER.isRunning()) {
+         EVENT_STORE_PROVIDER.start();
+      }
+   }
+
+   @AfterClass
+   public static void afterClass() {
+      EVENT_STORE_PROVIDER.stop();
+   }
+
    @Before
    public final void initTest() {
       myAggregateId = UUID.randomUUID()
             .toString();
       eventBus.subscribe(EVENT_LISTENER);
       settings = EventStoreSettings.withDefaults()
+            .host(HOST)
             .build();
       final ESContext esContext = new EsContextDefaultImpl(settings);
       client = new EventStoreClient(esContext);
    }
 
    protected <T extends AbstractAnnotatedAggregateRoot<?>> void deleteEventStream(final Class<T> classOfT, final String aggregateId) {
-      client.deleteStream(EsEventStoreUtils.getStreamName(classOfT.getSimpleName(), aggregateId), true);
+      client.deleteStream(EsEventStoreUtils.getStreamName(classOfT.getSimpleName(), aggregateId, "domain"), true);
    }
 
    protected <T> void expectEventsMatchingExactlyOnce(final List<T> expectedEvents) {
