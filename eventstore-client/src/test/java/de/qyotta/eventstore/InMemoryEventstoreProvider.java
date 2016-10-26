@@ -117,7 +117,9 @@ public class InMemoryEventstoreProvider {
    }
 
    public void stop() {
-      eventStoreProcess.destroyForcibly();
+      if (eventStoreProcess != null) {
+         eventStoreProcess.destroyForcibly();
+      }
    }
 
    public boolean isRunning() {
