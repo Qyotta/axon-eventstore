@@ -3,26 +3,34 @@ package de.qyotta.axonframework.eventstore;
 import org.axonframework.domain.DomainEventMessage;
 import org.axonframework.domain.DomainEventStream;
 
+import com.github.msemys.esjc.EventStore;
+import com.github.msemys.esjc.StreamEventsSlice;
+
 import de.qyotta.axonframework.eventstore.utils.EsEventStoreUtils;
-import de.qyotta.eventstore.EventStream;
 
 @SuppressWarnings({ "rawtypes" })
 public class EsjcEventStreamBackedDomainEventStream implements DomainEventStream {
 
-   private final EventStream eventStream;
+   private static final int NUMBER_OF_EVENTS_PER_SLICE = 10;
+   private final EventStore client;
+   private StreamEventsSlice currentSlice;
+   private final int currentEventNumber = 0;
 
-   public EsjcEventStreamBackedDomainEventStream(final EventStream eventStream) {
-      this.eventStream = eventStream;
+   public EsjcEventStreamBackedDomainEventStream(String streamName, com.github.msemys.esjc.EventStore client) {
+      this.client = client;
+      client.readStreamEventsForward(streamName, 0, NUMBER_OF_EVENTS_PER_SLICE, true).thenAccept(s -> {
+         this.currentSlice = s;
+      });
    }
 
    @Override
    public boolean hasNext() {
-      return eventStream.hasNext();
+      return currentSlice != null && !(currentEventNumber == currentSlice.lastEventNumber);
    }
 
    @Override
    public DomainEventMessage next() {
-      return EsEventStoreUtils.domainEventMessageOf(eventStream.next());
+      return EsEventStoreUtils.domainEventMessageOf(currentSlice.);
    }
 
    @Override

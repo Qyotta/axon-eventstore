@@ -20,7 +20,6 @@ import com.github.msemys.esjc.ExpectedVersion;
 import com.google.gson.Gson;
 
 import de.qyotta.axonframework.eventstore.utils.Constants;
-import de.qyotta.eventstore.EventStream;
 
 @SuppressWarnings({ "rawtypes" })
 public class EsjcEventStore implements EventStore {
@@ -40,8 +39,7 @@ public class EsjcEventStore implements EventStore {
          if (!identifierToEventStoreEvents.containsKey(identifier)) {
             identifierToEventStoreEvents.put(identifier, new LinkedList<EventData>());
          }
-         identifierToEventStoreEvents.get(identifier)
-               .add(toEvent(message));
+         identifierToEventStoreEvents.get(identifier).add(toEvent(message));
       }
       for (final Entry<Object, List<EventData>> entry : identifierToEventStoreEvents.entrySet()) {
          client.appendToStream(getStreamName(type, entry.getKey()), ExpectedVersion.any(), identifierToEventStoreEvents.get(entry.getValue()));
@@ -50,25 +48,17 @@ public class EsjcEventStore implements EventStore {
 
    @Override
    public DomainEventStream readEvents(String type, Object identifier) {
-      DomainEventStream stream;
       try {
-         client.readStreamEventsBackward(stream, start, count, resolveLinkTos)
-         final EventStream eventStoreEventStream = client.readEvents(getStreamName(type, identifier));
-         stream = new EsjcEventStreamBackedDomainEventStream(eventStoreEventStream);
-         if (!stream.hasNext()) {
-            throw new EventStreamNotFoundException(type, identifier);
-         }
+         return new EsjcEventStreamBackedDomainEventStream(getStreamName(type, identifier), client);
       } catch (final de.qyotta.eventstore.model.EventStreamNotFoundException e) {
          throw new EventStreamNotFoundException(String.format("Aggregate of type [%s] with identifier [%s] cannot be found.", type, identifier), e); //$NON-NLS-1$
       }
-      return stream;
    }
 
    private EventData toEvent(final DomainEventMessage message) {
       final HashMap<String, Object> metaData = new HashMap<>();
       final HashMap<String, Object> eventMetaData = new HashMap<>();
-      for (final Entry<String, Object> entry : message.getMetaData()
-            .entrySet()) {
+      for (final Entry<String, Object> entry : message.getMetaData().entrySet()) {
          eventMetaData.put(entry.getKey(), entry.getValue());
       }
 
@@ -76,13 +66,8 @@ public class EsjcEventStore implements EventStore {
       metaData.put(Constants.PAYLOAD_REVISION_KEY, getPayloadRevision(message.getPayloadType()));
       metaData.put(Constants.EVENT_METADATA_KEY, eventMetaData);
 
-      return EventData.newBuilder()
-            .eventId(UUID.fromString(message.getIdentifier())) // TODO check if it is save to assume that this can always be converted to a UUID
-            .jsonData(serialize(message.getPayload()))
-            .type(message.getPayloadType()
-                  .getName())
-            .metadata(serialize(metaData))
-            .build();
+      return EventData.newBuilder().eventId(UUID.fromString(message.getIdentifier())) // TODO check if it is save to assume that this can always be converted to a UUID
+            .jsonData(serialize(message.getPayload())).type(message.getPayloadType().getName()).metadata(serialize(metaData)).build();
    }
 
    private String getPayloadRevision(Class<?> payloadType) {
