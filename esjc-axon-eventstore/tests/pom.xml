@@ -16,11 +16,6 @@
    </properties>
    <dependencies>
       <dependency>
-         <groupId>de.qyotta.eventstore</groupId>
-         <artifactId>axon-eventstore</artifactId>
-         <version>0.1-SNAPSHOT</version>
-      </dependency>
-      <dependency>
          <groupId>org.springframework</groupId>
          <artifactId>spring-context</artifactId>
          <version>${spring.version}</version>

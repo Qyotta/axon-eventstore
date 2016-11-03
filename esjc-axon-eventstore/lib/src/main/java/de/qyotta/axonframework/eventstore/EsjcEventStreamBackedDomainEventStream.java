@@ -1,41 +1,52 @@
 package de.qyotta.axonframework.eventstore;
 
+import de.qyotta.axonframework.eventstore.utils.EsjcEventstoreUtil;
+
+import java.util.concurrent.ExecutionException;
+
 import org.axonframework.domain.DomainEventMessage;
 import org.axonframework.domain.DomainEventStream;
+import org.slf4j.LoggerFactory;
 
 import com.github.msemys.esjc.EventStore;
+import com.github.msemys.esjc.ResolvedEvent;
 import com.github.msemys.esjc.StreamEventsSlice;
-
-import de.qyotta.axonframework.eventstore.utils.EsEventStoreUtils;
 
 @SuppressWarnings({ "rawtypes" })
 public class EsjcEventStreamBackedDomainEventStream implements DomainEventStream {
 
-   private static final int NUMBER_OF_EVENTS_PER_SLICE = 10;
-   private final EventStore client;
+   private static final int NUMBER_OF_EVENTS_PER_SLICE = 4000;
+   private final org.slf4j.Logger LOGGER = LoggerFactory.getLogger(EsjcEventStore.class);
    private StreamEventsSlice currentSlice;
-   private final int currentEventNumber = 0;
+   private int currentEventNumber = 0;
 
-   public EsjcEventStreamBackedDomainEventStream(String streamName, com.github.msemys.esjc.EventStore client) {
-      this.client = client;
-      client.readStreamEventsForward(streamName, 0, NUMBER_OF_EVENTS_PER_SLICE, true).thenAccept(s -> {
-         this.currentSlice = s;
-      });
+   public EsjcEventStreamBackedDomainEventStream(String streamName, EventStore client) {
+      try {
+         this.currentSlice = client.readStreamEventsForward(streamName, 0, NUMBER_OF_EVENTS_PER_SLICE, true)
+               .get();
+         int i = 0;
+         i++;
+      } catch (InterruptedException | ExecutionException e) {
+         LOGGER.error(e.getMessage(), e);
+      }
    }
 
    @Override
    public boolean hasNext() {
-      return currentSlice != null && !(currentEventNumber == currentSlice.lastEventNumber);
+      return currentEventNumber < currentSlice.events.size();
    }
 
    @Override
    public DomainEventMessage next() {
-      return EsEventStoreUtils.domainEventMessageOf(currentSlice.);
+      final ResolvedEvent resolvedEvent = currentSlice.events.get(currentEventNumber);
+      currentEventNumber++;
+      return EsjcEventstoreUtil.domainEventMessageOf(resolvedEvent);
    }
 
    @Override
    public DomainEventMessage peek() {
-      return EsEventStoreUtils.domainEventMessageOf(eventStream.peek());
+      final ResolvedEvent resolvedEvent = currentSlice.events.get(currentEventNumber);
+      return EsjcEventstoreUtil.domainEventMessageOf(resolvedEvent);
    }
 
 }

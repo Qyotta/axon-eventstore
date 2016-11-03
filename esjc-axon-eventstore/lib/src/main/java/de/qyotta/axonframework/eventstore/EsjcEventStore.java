@@ -1,6 +1,9 @@
 package de.qyotta.axonframework.eventstore;
 
-import static de.qyotta.axonframework.eventstore.utils.EsEventStoreUtils.getStreamName;
+import de.qyotta.axonframework.eventstore.utils.Constants;
+import de.qyotta.axonframework.eventstore.utils.EsjcEventstoreUtil;
+
+import static de.qyotta.axonframework.eventstore.utils.EsjcEventstoreUtil.getStreamName;
 
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -8,33 +11,35 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.UUID;
+import java.util.concurrent.ExecutionException;
 
 import org.axonframework.domain.DomainEventMessage;
 import org.axonframework.domain.DomainEventStream;
 import org.axonframework.eventstore.EventStore;
 import org.axonframework.eventstore.EventStreamNotFoundException;
 import org.axonframework.serializer.Revision;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.github.msemys.esjc.EventData;
 import com.github.msemys.esjc.ExpectedVersion;
 import com.google.gson.Gson;
 
-import de.qyotta.axonframework.eventstore.utils.Constants;
-
 @SuppressWarnings({ "rawtypes" })
 public class EsjcEventStore implements EventStore {
    private final com.github.msemys.esjc.EventStore client;
    private final Gson gson = new Gson();
+   private final Logger LOGGER = LoggerFactory.getLogger(EsjcEventStore.class);
 
    public EsjcEventStore(final com.github.msemys.esjc.EventStore client) {
       this.client = client;
    }
 
    @Override
-   public void appendEvents(final String type, final DomainEventStream events) {
+   public void appendEvents(final String type, final DomainEventStream eventStream) {
       final Map<Object, List<EventData>> identifierToEventStoreEvents = new HashMap<>();
-      while (events.hasNext()) {
-         final DomainEventMessage message = events.next();
+      while (eventStream.hasNext()) {
+         final DomainEventMessage message = eventStream.next();
          final Object identifier = message.getAggregateIdentifier();
          if (!identifierToEventStoreEvents.containsKey(identifier)) {
             identifierToEventStoreEvents.put(identifier, new LinkedList<EventData>());
@@ -42,15 +47,23 @@ public class EsjcEventStore implements EventStore {
          identifierToEventStoreEvents.get(identifier).add(toEvent(message));
       }
       for (final Entry<Object, List<EventData>> entry : identifierToEventStoreEvents.entrySet()) {
-         client.appendToStream(getStreamName(type, entry.getKey()), ExpectedVersion.any(), identifierToEventStoreEvents.get(entry.getValue()));
+         final String streamName = getStreamName(type, entry.getKey());
+         final List<EventData> events = entry.getValue();
+         try {
+            client.appendToStream(streamName, ExpectedVersion.any(), events).get();
+         } catch (InterruptedException | ExecutionException e) {
+            LOGGER.error(e.getMessage(), e);
+         }
       }
    }
 
    @Override
    public DomainEventStream readEvents(String type, Object identifier) {
       try {
-         return new EsjcEventStreamBackedDomainEventStream(getStreamName(type, identifier), client);
-      } catch (final de.qyotta.eventstore.model.EventStreamNotFoundException e) {
+         final String streamName = EsjcEventstoreUtil.getStreamName(type, identifier);
+         final EsjcEventStreamBackedDomainEventStream eventStream = new EsjcEventStreamBackedDomainEventStream(streamName, client);
+         return eventStream;
+      } catch (final EventStreamNotFoundException e) {
          throw new EventStreamNotFoundException(String.format("Aggregate of type [%s] with identifier [%s] cannot be found.", type, identifier), e); //$NON-NLS-1$
       }
    }
