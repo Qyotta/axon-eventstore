@@ -1,5 +1,10 @@
 package de.qyotta.axonframework.eventstore;
 
+import de.qyotta.axonframework.eventstore.utils.Constants;
+import de.qyotta.eventstore.EventStoreClient;
+import de.qyotta.eventstore.EventStream;
+import de.qyotta.eventstore.model.Event;
+
 import static de.qyotta.axonframework.eventstore.utils.EsEventStoreUtils.getStreamName;
 
 import java.util.HashMap;
@@ -15,11 +20,6 @@ import org.axonframework.eventstore.EventStreamNotFoundException;
 import org.axonframework.serializer.Revision;
 
 import com.google.gson.Gson;
-
-import de.qyotta.axonframework.eventstore.utils.Constants;
-import de.qyotta.eventstore.EventStoreClient;
-import de.qyotta.eventstore.EventStream;
-import de.qyotta.eventstore.model.Event;
 
 /**
  * @author satan
