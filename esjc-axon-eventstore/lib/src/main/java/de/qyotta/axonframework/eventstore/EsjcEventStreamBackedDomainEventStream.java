@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory;
 
 import com.github.msemys.esjc.EventStore;
 import com.github.msemys.esjc.ResolvedEvent;
+import com.github.msemys.esjc.SliceReadStatus;
 import com.github.msemys.esjc.StreamEventsSlice;
 
 @SuppressWarnings({ "rawtypes" })
@@ -33,7 +34,7 @@ public class EsjcEventStreamBackedDomainEventStream implements DomainEventStream
 
    @Override
    public boolean hasNext() {
-      return currentEventNumber < currentSlice.events.size();
+      return currentSlice.events != null && !currentSlice.events.isEmpty() && currentEventNumber < currentSlice.events.size() && currentSlice.status.equals(SliceReadStatus.Success);
    }
 
    @Override
