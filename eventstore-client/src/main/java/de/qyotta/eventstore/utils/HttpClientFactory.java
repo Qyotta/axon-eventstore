@@ -10,7 +10,6 @@ import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.LaxRedirectStrategy;
 import org.apache.http.impl.client.cache.CacheConfig;
 import org.apache.http.impl.client.cache.CachingHttpClientBuilder;
-import org.apache.http.impl.client.cache.ManagedHttpCacheStorage;
 
 import de.qyotta.eventstore.EventStoreSettings;
 
@@ -24,7 +23,7 @@ public class HttpClientFactory {
    }
 
    private static CloseableHttpClient newClosableHttpClient(EventStoreSettings settings) {
-      final CloseableHttpClient build = HttpClientBuilder.create()
+      return HttpClientBuilder.create()
 
             .setDefaultRequestConfig(requestConfig(settings))
             .setDefaultCredentialsProvider(credentialsProvider(settings))
@@ -34,8 +33,6 @@ public class HttpClientFactory {
             .setConnectionManagerShared(true)
 
             .build();
-
-      return build;
    }
 
    private static CloseableHttpClient newClosableCachingHttpClient(EventStoreSettings settings) {
@@ -48,10 +45,8 @@ public class HttpClientFactory {
             .mkdirs();
 
       return CachingHttpClientBuilder.create()
-            .setHttpCacheStorage(new ManagedHttpCacheStorage(cacheConfig))
+            .setHttpCacheStorage(new FileCacheStorage(cacheConfig, settings.getCacheDirectory()))
             .setCacheConfig(cacheConfig)
-            .setCacheDir(settings.getCacheDirectory())
-
             .setDefaultRequestConfig(requestConfig(settings))
             .setDefaultCredentialsProvider(credentialsProvider(settings))
             .setRedirectStrategy(new LaxRedirectStrategy())
