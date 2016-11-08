@@ -13,6 +13,7 @@
       <jackson.version>2.8.1</jackson.version>
       <jackson.annotations.version>2.8.1</jackson.annotations.version>
       <jackson.databind.version>2.8.1</jackson.databind.version>
+      <esjc.version>1.5.0</esjc.version>
    </properties>
    <dependencies>
       <dependency>
@@ -48,6 +49,18 @@
          <groupId>com.fasterxml.jackson.core</groupId>
          <artifactId>jackson-databind</artifactId>
          <version>${jackson.databind.version}</version>
+         <scope>test</scope>
+      </dependency>
+      <dependency>
+         <groupId>com.github.msemys</groupId>
+         <artifactId>esjc</artifactId>
+         <version>${esjc.version}</version>
+         <scope>test</scope>
+      </dependency>
+      <dependency>
+         <groupId>de.qyotta.eventstore</groupId>
+         <artifactId>esjc-axon-eventstore</artifactId>
+         <version>0.1-SNAPSHOT</version>
          <scope>test</scope>
       </dependency>
    </dependencies>

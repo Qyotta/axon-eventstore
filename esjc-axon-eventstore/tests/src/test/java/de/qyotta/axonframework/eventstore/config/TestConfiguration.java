@@ -1,6 +1,10 @@
 package de.qyotta.axonframework.eventstore.config;
 
+import de.qyotta.axonframework.eventstore.EsjcEventStore;
+import de.qyotta.axonframework.eventstore.domain.MyTestAggregate;
+
 import java.net.UnknownHostException;
+import java.time.Duration;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
@@ -34,22 +38,30 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
-import de.qyotta.axonframework.eventstore.EsEventStore;
-import de.qyotta.axonframework.eventstore.domain.MyTestAggregate;
-import de.qyotta.eventstore.EventStoreClient;
-import de.qyotta.eventstore.EventStoreSettings;
-import de.qyotta.eventstore.communication.EsContextDefaultImpl;
+import com.github.msemys.esjc.EventStoreBuilder;
 
 @Configuration
 @ComponentScan(basePackages = { "de.qyotta.axonframework.eventstore.config" })
 public class TestConfiguration {
 
    @Bean
+   public com.github.msemys.esjc.EventStore eventStoreClient() {
+      final EventStoreBuilder eventStoreBuilder = EventStoreBuilder.newBuilder()
+            .clientReconnectionDelay(Duration.ofSeconds(3))
+            .userCredentials("admin", "changeit")
+            .clusterNodeUnlimitedDiscoverAttempts()
+            .unlimitedClientReconnections()
+            .unlimitedOperationRetries()
+            .singleNodeAddress("127.0.0.1", 3334)
+            .requireMasterEnabled();
+
+      return eventStoreBuilder.build();
+   }
+
+   @Bean
    @Autowired
-   public EventStore eventStore() {
-      final EsEventStore esEventStore = new EsEventStore(new EventStoreClient(new EsContextDefaultImpl(EventStoreSettings.withDefaults()
-            .build())));
-      return esEventStore;
+   public EventStore eventStore(final com.github.msemys.esjc.EventStore eventStoreClient) {
+      return new EsjcEventStore(eventStoreClient);
    }
 
    @Bean(name = "testAggregateEventsourcingRepository")

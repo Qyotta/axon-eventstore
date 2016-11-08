@@ -27,9 +27,11 @@ import com.google.gson.Gson;
 
 @SuppressWarnings({ "rawtypes" })
 public class EsjcEventStore implements EventStore {
+   private static final Logger LOGGER = LoggerFactory.getLogger(EsjcEventStore.class);
    private final com.github.msemys.esjc.EventStore client;
    private final Gson gson = new Gson();
-   private final Logger LOGGER = LoggerFactory.getLogger(EsjcEventStore.class);
+   @SuppressWarnings("nls")
+   private String prefix = "domain";
 
    public EsjcEventStore(final com.github.msemys.esjc.EventStore client) {
       this.client = client;
@@ -47,7 +49,7 @@ public class EsjcEventStore implements EventStore {
          identifierToEventStoreEvents.get(identifier).add(toEvent(message));
       }
       for (final Entry<Object, List<EventData>> entry : identifierToEventStoreEvents.entrySet()) {
-         final String streamName = getStreamName(type, entry.getKey());
+         final String streamName = getStreamName(type, entry.getKey(), prefix);
          final List<EventData> events = entry.getValue();
          try {
             client.appendToStream(streamName, ExpectedVersion.any(), events).get();
@@ -60,7 +62,7 @@ public class EsjcEventStore implements EventStore {
    @Override
    public DomainEventStream readEvents(String type, Object identifier) {
       try {
-         final String streamName = EsjcEventstoreUtil.getStreamName(type, identifier);
+         final String streamName = EsjcEventstoreUtil.getStreamName(type, identifier, prefix);
          final EsjcEventStreamBackedDomainEventStream eventStream = new EsjcEventStreamBackedDomainEventStream(streamName, client);
          return eventStream;
       } catch (final EventStreamNotFoundException e) {
@@ -93,5 +95,14 @@ public class EsjcEventStore implements EventStore {
 
    private String serialize(Object payload) {
       return gson.toJson(payload);
+   }
+
+   /**
+    * Set the prefix to use for domain-event-streams. This defaults to 'domain'.
+    *
+    * @param prefix
+    */
+   public void setPrefix(final String prefix) {
+      this.prefix = prefix;
    }
 }

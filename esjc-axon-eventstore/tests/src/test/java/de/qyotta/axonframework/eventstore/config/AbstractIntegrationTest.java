@@ -1,5 +1,7 @@
 package de.qyotta.axonframework.eventstore.config;
 
+import de.qyotta.axonframework.eventstore.utils.EsjcEventstoreUtil;
+
 import static org.junit.Assert.fail;
 
 import java.util.LinkedList;
@@ -11,19 +13,12 @@ import org.axonframework.domain.EventMessage;
 import org.axonframework.eventhandling.EventBus;
 import org.axonframework.eventhandling.EventListener;
 import org.axonframework.eventsourcing.annotation.AbstractAnnotatedAggregateRoot;
-import org.axonframework.eventstore.EventStore;
 import org.junit.Before;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.support.AnnotationConfigContextLoader;
-
-import de.qyotta.axonframework.eventstore.utils.EsEventStoreUtils;
-import de.qyotta.eventstore.EventStoreClient;
-import de.qyotta.eventstore.EventStoreSettings;
-import de.qyotta.eventstore.communication.ESContext;
-import de.qyotta.eventstore.communication.EsContextDefaultImpl;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 //@formatter:off
@@ -46,23 +41,17 @@ public abstract class AbstractIntegrationTest {
    @Autowired
    protected EventBus eventBus;
    @Autowired
-   protected EventStore eventStore;
-   private EventStoreClient client;
-   protected EventStoreSettings settings;
+   protected com.github.msemys.esjc.EventStore eventStore;
 
    @Before
    public final void initTest() {
       myAggregateId = UUID.randomUUID()
             .toString();
       eventBus.subscribe(EVENT_LISTENER);
-      settings = EventStoreSettings.withDefaults()
-            .build();
-      final ESContext esContext = new EsContextDefaultImpl(settings);
-      client = new EventStoreClient(esContext);
    }
 
    protected <T extends AbstractAnnotatedAggregateRoot<?>> void deleteEventStream(final Class<T> classOfT, final String aggregateId) {
-      client.deleteStream(EsEventStoreUtils.getStreamName(classOfT.getSimpleName(), aggregateId), true);
+      eventStore.deleteStream(EsjcEventstoreUtil.getStreamName(classOfT.getSimpleName(), aggregateId, "domain"), null);
    }
 
    protected <T> void expectEventsMatchingExactlyOnce(final List<T> expectedEvents) {

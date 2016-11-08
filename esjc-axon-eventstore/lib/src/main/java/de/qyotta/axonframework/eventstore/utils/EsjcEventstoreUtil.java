@@ -27,8 +27,8 @@ public final class EsjcEventstoreUtil {
    private static final Gson gson = new Gson();
    private static final Charset UTF_8 = Charset.forName("UTF-8");
 
-   public static final String getStreamName(String type, Object identifier) {
-      return "domain-" + type.toLowerCase() + "-" + identifier.toString();
+   public static final String getStreamName(final String type, final Object identifier, final String prefix) {
+      return prefix + "-" + type.toLowerCase() + "-" + identifier.toString();
    }
 
    @SuppressWarnings({ "rawtypes", "unchecked" })

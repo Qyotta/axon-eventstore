@@ -75,7 +75,6 @@ public class EsEventStore implements EventStore {
     */
    public void setPrefix(final String prefix) {
       this.prefix = prefix;
-
    }
 
    private Event toEvent(final DomainEventMessage message) {
