@@ -147,6 +147,34 @@ public class EventStreamImpl implements EventStream {
       }
       final EventResponse event = context.getReader()
             .readEvent(find.getUri());
+
+      event.getContent()
+            .setEventId(entry.getEventId());
+      event.getContent()
+            .setEventType(entry.getEventType());
+      event.getContent()
+            .setEventNumber(entry.getEventNumber());
+      event.getContent()
+            .setStreamId(entry.getStreamId());
+      event.getContent()
+            .setIsLinkMetaData(entry.getIsLinkMetaData());
+      event.getContent()
+            .setPositionEventNumber(entry.getPositionEventNumber());
+      event.getContent()
+            .setPositionStreamId(entry.getPositionStreamId());
+      event.getContent()
+            .setTitle(entry.getTitle());
+      event.getContent()
+            .setId(entry.getId());
+      event.getContent()
+            .setUpdated(entry.getUpdated());
+      event.getContent()
+            .setUpdated(entry.getUpdated());
+      event.getContent()
+            .setAuthor(entry.getAuthor());
+      event.getContent()
+            .setSummary(entry.getSummary());
+
       LOGGER.info("Loaded event with number: " + event.getContent()
             .getEventNumber());
       return event;

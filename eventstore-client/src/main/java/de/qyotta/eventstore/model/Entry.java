@@ -19,8 +19,17 @@ import lombok.ToString;
 @NoArgsConstructor(access = AccessLevel.PUBLIC)
 @AllArgsConstructor(access = AccessLevel.PUBLIC)
 public class Entry {
+   private String eventId;
+   private String eventType;
+   private Long eventNumber;
+   private String streamId;
+   private Boolean isLinkMetaData;
+   private Long positionEventNumber;
+   private String positionStreamId;
    private String title;
    private String id;
    private String updated;
+   private Author author;
+   private String summary;
    private List<Link> links;
 }

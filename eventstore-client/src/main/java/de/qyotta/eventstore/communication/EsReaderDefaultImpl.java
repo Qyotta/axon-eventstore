@@ -104,13 +104,16 @@ public class EsReaderDefaultImpl implements ESReader {
 
    private EventStreamFeed loadFeed(final String url) throws IOException {
       try {
-         final HttpGet httpget = new HttpGet(url);
+         final HttpGet httpget = new HttpGet(url + "?embed=rich");
          httpget.addHeader(ACCEPT_HEADER, ACCEPT_EVENTSTORE_ATOM_JSON);
+         // httpget.addHeader("ES-LongPoll", "5");
 
          final HttpCacheContext context = HttpCacheContext.create();
          final CloseableHttpResponse response = httpclient.execute(httpget, context);
          try {
-            HttpCacheLoggingUtil.logCacheResponseStatus(name, context.getCacheResponseStatus());
+            if (context.getCacheResponseStatus() != null) {
+               HttpCacheLoggingUtil.logCacheResponseStatus(name, context.getCacheResponseStatus());
+            }
 
             final int statusCode = response.getStatusLine()
                   .getStatusCode();
@@ -141,7 +144,9 @@ public class EsReaderDefaultImpl implements ESReader {
          final HttpCacheContext context = HttpCacheContext.create();
          final CloseableHttpResponse response = httpclient.execute(httpget, context);
          try {
-            HttpCacheLoggingUtil.logCacheResponseStatus(name, context.getCacheResponseStatus());
+            if (context.getCacheResponseStatus() != null) {
+               HttpCacheLoggingUtil.logCacheResponseStatus(name, context.getCacheResponseStatus());
+            }
 
             final int statusCode = response.getStatusLine()
                   .getStatusCode();

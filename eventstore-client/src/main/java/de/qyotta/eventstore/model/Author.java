@@ -16,12 +16,6 @@ import lombok.ToString;
 @EqualsAndHashCode
 @NoArgsConstructor(access = AccessLevel.PUBLIC)
 @AllArgsConstructor(access = AccessLevel.PUBLIC)
-public class EventResponse {
-   private String title;
-   private String id;
-   private String updated;
-   private Author author;
-   private String summary;
-
-   private Event content;
+public class Author {
+   private String name;
 }

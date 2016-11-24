@@ -15,11 +15,6 @@ import de.qyotta.axonframework.eventstore.config.AbstractIntegrationTest;
 import de.qyotta.axonframework.eventstore.domain.ChangeTestAggregate;
 import de.qyotta.axonframework.eventstore.domain.CreateTestAggregate;
 import de.qyotta.axonframework.eventstore.domain.MyTestAggregate;
-import de.qyotta.axonframework.eventstore.utils.EsDomainEventReader;
-import de.qyotta.axonframework.eventstore.utils.EsDomainEventReader.EsDomainEventReaderCallback;
-import de.qyotta.axonframework.eventstore.utils.EsEventStoreUtils;
-import de.qyotta.eventstore.EventStoreClient;
-import de.qyotta.eventstore.communication.EsContextDefaultImpl;
 
 public class EventReaderTest extends AbstractIntegrationTest {
 

@@ -163,13 +163,13 @@ public class EventStreamReaderImpl implements EventStreamReader {
    }
 
    private void start(final EventStream eventStream) {
-      while (eventStream.hasNext()) {
-         callback.readEvent(eventStream.next());
-      }
+      // while (eventStream.hasNext()) {
+      // callback.readEvent(eventStream.next());
+      // }
       currentTask = () -> catchUp(eventStream);
       if (intervalMillis > 0) {
          scheduler = Executors.newScheduledThreadPool(1);
-         scheduler.scheduleAtFixedRate(currentTask, intervalMillis, intervalMillis, TimeUnit.MILLISECONDS);
+         scheduler.scheduleWithFixedDelay(currentTask, 0, intervalMillis, TimeUnit.MILLISECONDS);
       }
    }
 

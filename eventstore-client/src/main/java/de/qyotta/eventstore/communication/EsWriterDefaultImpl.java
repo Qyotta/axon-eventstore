@@ -81,7 +81,9 @@ public class EsWriterDefaultImpl implements ESWriter {
             try {
                response = httpclient.execute(post, context);
 
-               HttpCacheLoggingUtil.logCacheResponseStatus(name, context.getCacheResponseStatus());
+               if (context.getCacheResponseStatus() != null) {
+                  HttpCacheLoggingUtil.logCacheResponseStatus(name, context.getCacheResponseStatus());
+               }
 
                if (HttpStatus.SC_CREATED != response.getStatusLine()
                      .getStatusCode()) {
