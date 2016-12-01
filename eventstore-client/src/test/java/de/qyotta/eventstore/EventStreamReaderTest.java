@@ -1,5 +1,10 @@
 package de.qyotta.eventstore;
 
+import de.qyotta.eventstore.model.Event;
+import de.qyotta.eventstore.model.EventResponse;
+import de.qyotta.eventstore.utils.EventStreamReader;
+import de.qyotta.eventstore.utils.EventStreamReaderImpl.EventStreamReaderCallback;
+
 import static com.jayway.awaitility.Awaitility.await;
 import static com.jayway.awaitility.Duration.FIVE_SECONDS;
 import static org.hamcrest.Matchers.equalTo;
@@ -26,11 +31,6 @@ import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
 import com.google.gson.Gson;
-
-import de.qyotta.eventstore.model.Event;
-import de.qyotta.eventstore.model.EventResponse;
-import de.qyotta.eventstore.utils.EventStreamReader;
-import de.qyotta.eventstore.utils.EventStreamReaderImpl.EventStreamReaderCallback;
 
 @SuppressWarnings("nls")
 public class EventStreamReaderTest extends AbstractEsTest {
@@ -144,6 +144,7 @@ public class EventStreamReaderTest extends AbstractEsTest {
       final EventStreamReader eventStreamReader = client.newEventStreamReader(streamName, -1, callback);
 
       eventStreamReader.start();
+      eventStreamReader.catchUp();
       verify(callback, times(78)).readEvent(any(EventResponse.class));
       eventStreamReader.catchUp();
       verifyNoMoreInteractions(callback);
@@ -155,6 +156,7 @@ public class EventStreamReaderTest extends AbstractEsTest {
       final EventStreamReaderCallback callback = mock(EventStreamReaderCallback.class);
       final EventStreamReader eventStreamReader = client.newEventStreamReader(streamName, -1, callback);
       eventStreamReader.start(13 + "@" + streamName);
+      eventStreamReader.catchUp();
       verify(callback, times(61)).readEvent(any(EventResponse.class));
       createEvents(55);
       eventStreamReader.catchUp();
