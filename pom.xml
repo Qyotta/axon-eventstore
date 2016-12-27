@@ -33,7 +33,7 @@
       <modules>
         <module>eventstore-client</module>
         <module>axon-eventstore</module>
-        <module>esjc-axon-eventstore</module>
+        <!--<module>esjc-axon-eventstore</module>-->
       </modules>
     </profile>
   </profiles>
