@@ -1,8 +1,5 @@
 package de.qyotta.axonframework.eventstore;
 
-import de.qyotta.axonframework.eventstore.utils.Constants;
-import de.qyotta.axonframework.eventstore.utils.EsjcEventstoreUtil;
-
 import static de.qyotta.axonframework.eventstore.utils.EsjcEventstoreUtil.getStreamName;
 
 import java.util.HashMap;
@@ -25,6 +22,9 @@ import com.github.msemys.esjc.EventData;
 import com.github.msemys.esjc.ExpectedVersion;
 import com.google.gson.Gson;
 
+import de.qyotta.axonframework.eventstore.utils.Constants;
+import de.qyotta.axonframework.eventstore.utils.EsjcEventstoreUtil;
+
 @SuppressWarnings({ "rawtypes" })
 public class EsjcEventStore implements EventStore {
    private static final Logger LOGGER = LoggerFactory.getLogger(EsjcEventStore.class);
@@ -46,13 +46,15 @@ public class EsjcEventStore implements EventStore {
          if (!identifierToEventStoreEvents.containsKey(identifier)) {
             identifierToEventStoreEvents.put(identifier, new LinkedList<EventData>());
          }
-         identifierToEventStoreEvents.get(identifier).add(toEvent(message));
+         identifierToEventStoreEvents.get(identifier)
+               .add(toEvent(message));
       }
       for (final Entry<Object, List<EventData>> entry : identifierToEventStoreEvents.entrySet()) {
          final String streamName = getStreamName(type, entry.getKey(), prefix);
          final List<EventData> events = entry.getValue();
          try {
-            client.appendToStream(streamName, ExpectedVersion.any(), events).get();
+            client.appendToStream(streamName, ExpectedVersion.ANY, events)
+                  .get();
          } catch (InterruptedException | ExecutionException e) {
             LOGGER.error(e.getMessage(), e);
          }
@@ -73,7 +75,8 @@ public class EsjcEventStore implements EventStore {
    private EventData toEvent(final DomainEventMessage message) {
       final HashMap<String, Object> metaData = new HashMap<>();
       final HashMap<String, Object> eventMetaData = new HashMap<>();
-      for (final Entry<String, Object> entry : message.getMetaData().entrySet()) {
+      for (final Entry<String, Object> entry : message.getMetaData()
+            .entrySet()) {
          eventMetaData.put(entry.getKey(), entry.getValue());
       }
 
@@ -81,8 +84,13 @@ public class EsjcEventStore implements EventStore {
       metaData.put(Constants.PAYLOAD_REVISION_KEY, getPayloadRevision(message.getPayloadType()));
       metaData.put(Constants.EVENT_METADATA_KEY, eventMetaData);
 
-      return EventData.newBuilder().eventId(UUID.fromString(message.getIdentifier())) // TODO check if it is save to assume that this can always be converted to a UUID
-            .jsonData(serialize(message.getPayload())).type(message.getPayloadType().getName()).metadata(serialize(metaData)).build();
+      return EventData.newBuilder()
+            .eventId(UUID.fromString(message.getIdentifier())) // TODO check if it is save to assume that this can always be converted to a UUID
+            .jsonData(serialize(message.getPayload()))
+            .type(message.getPayloadType()
+                  .getName())
+            .metadata(serialize(metaData))
+            .build();
    }
 
    private String getPayloadRevision(Class<?> payloadType) {

@@ -13,7 +13,7 @@
       <guava.version>19.0</guava.version>
       <gson.version>2.7</gson.version>
       <jackson.version>2.8.1</jackson.version>
-      <esjc.version>1.5.0</esjc.version>
+      <esjc.version>1.7.0</esjc.version>
    </properties>
    <dependencies>
       <dependency>

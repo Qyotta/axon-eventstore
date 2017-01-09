@@ -1,7 +1,5 @@
 package de.qyotta.axonframework.eventstore.utils;
 
-import lombok.experimental.UtilityClass;
-
 import java.lang.reflect.Type;
 import java.nio.charset.Charset;
 import java.util.Map;
@@ -16,6 +14,8 @@ import com.github.msemys.esjc.RecordedEvent;
 import com.github.msemys.esjc.ResolvedEvent;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
+
+import lombok.experimental.UtilityClass;
 
 @UtilityClass
 @SuppressWarnings("nls")
@@ -41,8 +41,7 @@ public final class EsjcEventstoreUtil {
 
          final Map<String, ?> eventMetadata = (Map<String, ?>) metaData.get(Constants.EVENT_METADATA_KEY);
          final int sequenceNumber = originalEvent.eventNumber;
-         final DateTime dateTime = new DateTime(originalEvent.created.get()
-               .toEpochMilli(), DateTimeZone.UTC);
+         final DateTime dateTime = new DateTime(originalEvent.created.toEpochMilli(), DateTimeZone.UTC);
          final String identifier = String.valueOf(originalEvent.eventId);
          final Object aggregateIdentifier = metaData.get(Constants.AGGREGATE_ID_KEY);
          return new GenericDomainEventMessage(identifier, dateTime, aggregateIdentifier, sequenceNumber, payload, new MetaData(eventMetadata));
