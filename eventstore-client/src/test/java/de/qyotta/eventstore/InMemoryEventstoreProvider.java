@@ -99,8 +99,11 @@ public class InMemoryEventstoreProvider {
    public void start() {
       final long start = System.currentTimeMillis();
       installIfNeeded();
-      final String command = EVENTSTORE_DIR + "eventstored --int-tcp-port=3333 --int-http-port=4444 --ext-tcp-port=3334 --ext-http-port=4445 --mem-db";
+      final String command = EVENTSTORE_DIR
+            + "eventstored --int-tcp-port=3333 --int-http-port=4444 --ext-tcp-port=3334 --ext-http-port=4445 --mem-db --run-projections=all --start-standard-projections=true";
+
       try {
+         System.out.println("Execute command: " + command);
          eventStoreProcess = Runtime.getRuntime()
                .exec(command);
          await().atMost(Duration.FIVE_SECONDS)
