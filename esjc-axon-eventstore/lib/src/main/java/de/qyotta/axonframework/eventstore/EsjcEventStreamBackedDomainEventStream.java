@@ -1,7 +1,5 @@
 package de.qyotta.axonframework.eventstore;
 
-import de.qyotta.axonframework.eventstore.utils.EsjcEventstoreUtil;
-
 import java.util.concurrent.ExecutionException;
 
 import org.axonframework.domain.DomainEventMessage;
@@ -12,6 +10,8 @@ import com.github.msemys.esjc.EventStore;
 import com.github.msemys.esjc.ResolvedEvent;
 import com.github.msemys.esjc.SliceReadStatus;
 import com.github.msemys.esjc.StreamEventsSlice;
+
+import de.qyotta.axonframework.eventstore.utils.EsjcEventstoreUtil;
 
 @SuppressWarnings({ "rawtypes" })
 public class EsjcEventStreamBackedDomainEventStream implements DomainEventStream {
@@ -25,8 +25,6 @@ public class EsjcEventStreamBackedDomainEventStream implements DomainEventStream
       try {
          this.currentSlice = client.readStreamEventsForward(streamName, 0, NUMBER_OF_EVENTS_PER_SLICE, true)
                .get();
-         int i = 0;
-         i++;
       } catch (InterruptedException | ExecutionException e) {
          LOGGER.error(e.getMessage(), e);
       }
@@ -34,7 +32,7 @@ public class EsjcEventStreamBackedDomainEventStream implements DomainEventStream
 
    @Override
    public boolean hasNext() {
-      return currentSlice.events != null && !currentSlice.events.isEmpty() && currentEventNumber < currentSlice.events.size() && currentSlice.status.equals(SliceReadStatus.Success);
+      return currentSlice.status.equals(SliceReadStatus.Success) && currentSlice.events != null && !currentSlice.events.isEmpty() && currentEventNumber < currentSlice.events.size();
    }
 
    @Override

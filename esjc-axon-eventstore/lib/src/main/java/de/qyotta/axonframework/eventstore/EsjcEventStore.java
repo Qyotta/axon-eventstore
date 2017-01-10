@@ -66,6 +66,9 @@ public class EsjcEventStore implements EventStore {
       try {
          final String streamName = EsjcEventstoreUtil.getStreamName(type, identifier, prefix);
          final EsjcEventStreamBackedDomainEventStream eventStream = new EsjcEventStreamBackedDomainEventStream(streamName, client);
+         if (!eventStream.hasNext()) {
+            throw new EventStreamNotFoundException(type, identifier);
+         }
          return eventStream;
       } catch (final EventStreamNotFoundException e) {
          throw new EventStreamNotFoundException(String.format("Aggregate of type [%s] with identifier [%s] cannot be found.", type, identifier), e); //$NON-NLS-1$
