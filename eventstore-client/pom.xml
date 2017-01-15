@@ -12,7 +12,6 @@
    <properties>
       <apache.httpclient.version>4.5.1</apache.httpclient.version>
       <gson.version>2.7</gson.version>
-      <ehcache.version>2.10.2.2.21</ehcache.version>
    </properties>
    <build>
       <resources>
@@ -97,12 +96,6 @@
          <groupId>org.apache.httpcomponents</groupId>
          <artifactId>httpclient-cache</artifactId>
          <version>${apache.httpclient.version}</version>
-      </dependency>
-      <!-- https://mvnrepository.com/artifact/net.sf.ehcache/ehcache -->
-      <dependency>
-         <groupId>net.sf.ehcache</groupId>
-         <artifactId>ehcache</artifactId>
-         <version>${ehcache.version}</version>
       </dependency>
       <dependency>
          <groupId>com.google.code.gson</groupId>
