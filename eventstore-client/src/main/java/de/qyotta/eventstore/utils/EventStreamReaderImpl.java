@@ -146,7 +146,7 @@ public class EventStreamReaderImpl implements EventStreamReader {
          }
          isCatchingUp = true;
          eventStream.loadNext();
-         while (eventStream.hasNext()) {
+         while (eventStream.hasNext() && !isPaused()) {
             callback.readEvent(eventStream.next());
          }
          isCatchingUp = false;
@@ -163,9 +163,7 @@ public class EventStreamReaderImpl implements EventStreamReader {
    }
 
    private void start(final EventStream eventStream) {
-      // while (eventStream.hasNext()) {
-      // callback.readEvent(eventStream.next());
-      // }
+      paused = false;
       currentTask = () -> catchUp(eventStream);
       if (intervalMillis > 0) {
          scheduler = Executors.newScheduledThreadPool(1);
