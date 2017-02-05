@@ -132,7 +132,8 @@ public class EventStreamReaderImpl implements EventStreamReader {
          currentTask.run();
          return;
       }
-      // if start was never called just start, wich is equivalent to catching up from the beginning
+      // if start was never called just start, wich is equivalent to catching
+      // up from the beginning
       start();
    }
 
@@ -149,9 +150,10 @@ public class EventStreamReaderImpl implements EventStreamReader {
          while (eventStream.hasNext() && !isPaused()) {
             callback.readEvent(eventStream.next());
          }
-         isCatchingUp = false;
       } catch (final Throwable t) {
          errorCallback.onError("Error catching up to event stream.", t);
+      } finally {
+         isCatchingUp = false;
       }
    }
 
@@ -194,7 +196,7 @@ public class EventStreamReaderImpl implements EventStreamReader {
    /*
     * (non-Javadoc)
     *
-    * @see de.qyotta.eventstore.utils.EventStreamReader#setCatchUpTerminationPeriodMillis(long)
+    * @see de.qyotta.eventstore.utils.EventStreamReader# setCatchUpTerminationPeriodMillis(long)
     */
    @Override
    public void setCatchUpTerminationPeriodMillis(long catchUpTerminationPeriodMillis) {
