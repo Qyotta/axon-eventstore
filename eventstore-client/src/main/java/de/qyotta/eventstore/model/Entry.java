@@ -32,4 +32,6 @@ public class Entry {
    private Author author;
    private String summary;
    private List<Link> links;
+
+   private Event content;
 }

@@ -19,6 +19,11 @@ import lombok.ToString;
 @NoArgsConstructor(access = AccessLevel.PUBLIC)
 @AllArgsConstructor(access = AccessLevel.PUBLIC)
 public class EventStreamFeed {
+   private String title;
+   private String id;
+   private String updated;
+   private Author author;
+   boolean headOfStream;
    private List<Link> links;
    private List<Entry> entries;
 
