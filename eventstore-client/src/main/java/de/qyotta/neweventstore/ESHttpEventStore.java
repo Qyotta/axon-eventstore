@@ -29,6 +29,8 @@ import de.qyotta.eventstore.model.EventResponse;
 @SuppressWarnings("nls")
 public final class ESHttpEventStore {
 
+   private static final int DEFAUT_LONG_POLL = 30;
+
    private static final Logger LOG = LoggerFactory.getLogger(ESHttpEventStore.class);
 
    private final ThreadFactory threadFactory;
@@ -43,20 +45,23 @@ public final class ESHttpEventStore {
 
    private final AtomFeedJsonReader atomFeedReader;
 
+   private final int longPollSec;
+
    public ESHttpEventStore(final URL url, final CredentialsProvider credentialsProvider) {
-      this(null, url, credentialsProvider);
+      this(null, url, credentialsProvider, DEFAUT_LONG_POLL);
    }
 
-   public ESHttpEventStore(final ThreadFactory threadFactory, final URL url, final CredentialsProvider credentialsProvider) {
+   public ESHttpEventStore(final ThreadFactory threadFactory, final URL url, final CredentialsProvider credentialsProvider, int longPollSec) {
       super();
       this.threadFactory = threadFactory;
       this.url = url;
       this.credentialsProvider = credentialsProvider;
+      this.longPollSec = longPollSec;
       this.open = false;
       atomFeedReader = new AtomFeedJsonReader();
    }
 
-   public void open() {
+   private void open() {
       if (open) {
          // Ignore
          return;
@@ -187,7 +192,7 @@ public final class ESHttpEventStore {
             LOG.debug(msg + " RESPONSE: {}", response);
             throw new StreamDeletedException(streamName);
          }
-         throw new ReadFailedException(streamName, msg + " [Status=" + statusLine + "]");
+         throw new UnknownServerResponseException(streamName, " [Status=" + statusLine + "]");
       } catch (final Exception e) {
          throw new ReadFailedException(streamName, msg, e);
       } finally {
@@ -322,10 +327,10 @@ public final class ESHttpEventStore {
       return Integer.valueOf(str);
    }
 
-   private static HttpGet createHttpGet(final URI uri) {
+   private HttpGet createHttpGet(final URI uri) {
       final HttpGet request = new HttpGet(uri + "?embed=rich");
       request.setHeader("Accept", "application/vnd.eventstore.atom+json");
-      request.setHeader("ES-LongPoll", "60");
+      request.setHeader("ES-LongPoll", String.valueOf(longPollSec));
       return request;
    }
 
