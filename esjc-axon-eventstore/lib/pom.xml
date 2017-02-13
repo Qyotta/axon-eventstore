@@ -6,7 +6,7 @@
    <parent>
       <groupId>de.qyotta.eventstore</groupId>
       <artifactId>esjc-axon-eventstore-parent</artifactId>
-      <version>0.1-SNAPSHOT</version>
+      <version>1.0.0</version>
    </parent>
    <properties>
       <axon.version>2.4.4</axon.version>

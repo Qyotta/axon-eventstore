@@ -7,7 +7,7 @@
    <parent>
       <groupId>de.qyotta.eventstore</groupId>
       <artifactId>eventstore-parent</artifactId>
-      <version>0.1-SNAPSHOT</version>
+      <version>1.0.0</version>
    </parent>
    <properties>
       <apache.httpclient.version>4.5.1</apache.httpclient.version>
