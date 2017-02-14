@@ -103,6 +103,9 @@ public class InMemoryEventstoreProvider {
             + "eventstored --int-tcp-port=3333 --int-http-port=4444 --ext-tcp-port=3334 --ext-http-port=4445 --mem-db --run-projections=all --start-standard-projections=true";
 
       try {
+         eventStoreProcess = Runtime.getRuntime()
+               .exec("/usr/bin/pkill eventstored");
+
          System.out.println("Execute command: " + command);
          eventStoreProcess = Runtime.getRuntime()
                .exec(command);
