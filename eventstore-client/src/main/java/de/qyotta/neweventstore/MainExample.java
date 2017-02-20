@@ -19,7 +19,7 @@ public class MainExample {
       final BasicCredentialsProvider credentialsProvider = new BasicCredentialsProvider();
       credentialsProvider.setCredentials(AuthScope.ANY, new UsernamePasswordCredentials("admin", "tynW3Z9bWUeD4K8B3t4d"));
 
-      esHttpEventStore = new ESHttpEventStore(new URL("http://localhost:2123"), credentialsProvider);
+      esHttpEventStore = new ESHttpEventStore("", new URL("http://localhost:2123"), credentialsProvider);
       streamName = "$ce-mda";
 
       // readBackwards();
@@ -35,7 +35,7 @@ public class MainExample {
 
       while (true) {
          try {
-            final StreamEventsSlice slice = esHttpEventStore.readEventsForward(streamName, nextEventNumber, 500);
+            final StreamEventsSlice slice = esHttpEventStore.readEventsForward(streamName, nextEventNumber, 500, "");
 
             nextEventNumber = slice.getNextEventNumber();
 
@@ -70,7 +70,7 @@ public class MainExample {
             .getPositionEventNumber();
       while (true) {
          try {
-            final StreamEventsSlice slice = esHttpEventStore.readEventsBackward(streamName, nextEventNumber.intValue(), 500);
+            final StreamEventsSlice slice = esHttpEventStore.readEventsBackward(streamName, nextEventNumber.intValue(), 500, "");
 
             nextEventNumber = Long.valueOf(slice.getNextEventNumber());
 
