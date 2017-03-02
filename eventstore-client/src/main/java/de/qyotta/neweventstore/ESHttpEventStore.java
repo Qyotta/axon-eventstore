@@ -241,7 +241,13 @@ public final class ESHttpEventStore {
       } else {
          for (int i = entries.size() - 1; i >= 0; i--) {
             final Entry entry = entries.get(i);
-            events.add(enrich(readEvent(new URI(entry.getId()), traceString), entry));
+            try {
+               final EventResponse event = readEvent(new URI(entry.getId()), traceString);
+               final EventResponse enrichedEvent = enrich(event, entry);
+               events.add(enrichedEvent);
+            } catch (final ReadFailedException e) {
+               continue;
+            }
          }
       }
       final int nextEventNumber;
