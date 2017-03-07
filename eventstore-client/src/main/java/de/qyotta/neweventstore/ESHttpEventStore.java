@@ -1,26 +1,22 @@
 package de.qyotta.neweventstore;
 
-import de.qyotta.eventstore.model.Entry;
-import de.qyotta.eventstore.model.Event;
-import de.qyotta.eventstore.model.EventResponse;
-import de.qyotta.eventstore.utils.DefaultConnectionKeepAliveStrategy;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.time.Duration;
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Future;
 import java.util.concurrent.ThreadFactory;
 
+import org.apache.http.Header;
+import org.apache.http.HeaderElement;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.StatusLine;
 import org.apache.http.client.CredentialsProvider;
+import org.apache.http.client.entity.GzipDecompressingEntity;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.impl.nio.client.CloseableHttpAsyncClient;
@@ -30,10 +26,30 @@ import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import de.qyotta.eventstore.model.Entry;
+import de.qyotta.eventstore.model.Event;
+import de.qyotta.eventstore.model.EventResponse;
+import de.qyotta.eventstore.utils.DefaultConnectionKeepAliveStrategy;
+import io.prometheus.client.Histogram;
+import io.prometheus.client.Histogram.Timer;
+
 @SuppressWarnings("nls")
 public final class ESHttpEventStore {
-
    private static final int DEFAUT_LONG_POLL = 30;
+
+   private static final Histogram SLICE_READ_HISTOGRAM = Histogram.build()
+         .name("de_qyotta_http_reader_slice_read_time")
+         .help("Read time per event slice")
+         .labelNames("stream", "identifier", "host")
+         .buckets(0.01, 0.100, 1, 10, DEFAUT_LONG_POLL)
+         .register();
+
+   private static final Histogram EVENT_READ_HISTOGRAM = Histogram.build()
+         .name("de_qyotta_http_reader_event_request_time")
+         .help("Time for a single event request")
+         .labelNames("stream", "identifier", "host")
+         .buckets(0.01, 0.100, 1, 10)
+         .register();
 
    private static final Logger LOG = LoggerFactory.getLogger(ESHttpEventStore.class);
 
@@ -52,6 +68,8 @@ public final class ESHttpEventStore {
    private final int longPollSec;
    private final String identifier;
    private final String host;
+
+   private int count;
 
    public ESHttpEventStore(final URL url, final CredentialsProvider credentialsProvider) {
       this("", null, url, credentialsProvider, DEFAUT_LONG_POLL);
@@ -142,35 +160,60 @@ public final class ESHttpEventStore {
       }
    }
 
-   public StreamEventsSlice readEventsForward(final String streamName, final int start, final int count, final String traceString) throws ReadFailedException {
-      final Instant startTime = Instant.now();
+   public StreamEventsSlice readEventsForward(String streamName, StreamEventsSlice slice, int pCount, String traceString) throws ReadFailedException {
+      this.count = pCount;
+      if (slice == null) {
+         return readEventsForward(streamName, 0, traceString);
+      }
+      return readEventsForward(streamName, slice.getNextEventNumber(), traceString);
+   }
+
+   private StreamEventsSlice readEventsForward(final String streamName, final long start, final String traceString) throws ReadFailedException {
       ensureOpen();
 
-      final String msg = "readEventsForward(" + streamName + ", " + start + ", " + count + ")";
-      LOG.debug("#<>#<># [" + traceString + "]" + msg);
-      try {
-         final URI uri = new URIBuilder(url.toURI()).setPath("/streams/" + streamName + "/" + start + "/forward/" + count)
-               .build();
+      final long numberOfeventsToRead = getNumberOfEventsToRead(start, count);
 
-         LOG.debug("#<*>#<1># [" + traceString + "]" + msg + " " + uri.toString());
+      final String msg = "readEventsForward(" + streamName + ", " + start + ", " + numberOfeventsToRead + ")";
+      try {
+         final URI uri = new URIBuilder(url.toURI()).setPath("/streams/" + streamName + "/" + start + "/forward/" + numberOfeventsToRead)
+               .build();
 
          final boolean reverseOrder = false;
          final boolean forward = true;
 
          final List<Entry> entries = readFeed(streamName, uri, msg, traceString);
-         LOG.debug("#<*>#<2># [" + traceString + "] found " + entries.size() + " in feed for: " + uri.toString());
-         final StreamEventsSlice slice = readEvents(forward, start, count, entries, reverseOrder, traceString);
-         LOG.debug("#<*>#<3># [" + traceString + "] created slice from feed " + slice.getFromEventNumber() + "-" + slice.getNextEventNumber());
-         return slice;
+         return readEvents(forward, start, entries, reverseOrder);
       } catch (final URISyntaxException ex) {
          throw new ReadFailedException(streamName, msg, ex);
-      } finally {
-         final Duration between = Duration.between(startTime, Instant.now());
-         PrometheusMonitoringService.eventSliceDuration(between.toMillis(), streamName, identifier, host);
       }
    }
 
-   public StreamEventsSlice readEventsBackward(final String streamName, final int start, final int count, final String traceString) throws ReadFailedException {
+   /**
+    * This method returns the number of events to read next. It tries to respect the sliceSize, so that at most one read is out-of-bounds. Example:
+    *
+    * <ul>
+    * <li>start=0, sliceSize=4096 => start=0, count=4096 (unmodified)</li>
+    * <li>start=1, sliceSize=4096 => start=1, count=4095 (we initially read 4095 events. The next read slice witll start at 4096)</li>
+    * <li>start=4095, forward=4096 => start=4095, count=1 (we initially read 1 event. The next read slice witll start at 4096)</li>
+    * <li>start=4096, forward=4096 => start=4096, count=4096 (unmodified)</li>
+    * </ul>
+    */
+   private long getNumberOfEventsToRead(final long start, long sliceSize) {
+      if (start % sliceSize != 0) {
+         return sliceSize - start;
+      }
+      return sliceSize;
+   }
+
+   public StreamEventsSlice readEventsBackward(String streamName, StreamEventsSlice slice, int pCount, String traceString) throws ReadFailedException {
+      this.count = pCount;
+      if (slice == null) {
+         return readEventsBackward(streamName, 0, traceString);
+      }
+      return readEventsBackward(streamName, slice.getNextEventNumber(), traceString);
+   }
+
+   private StreamEventsSlice readEventsBackward(String streamName, long start, String traceString) throws ReadFailedException {
       ensureOpen();
 
       final String msg = "readEventsBackward(" + streamName + ", " + start + ", " + count + ")";
@@ -181,29 +224,42 @@ public final class ESHttpEventStore {
          final boolean forward = false;
 
          final List<Entry> entries = readFeed(streamName, uri, msg, traceString);
-         final StreamEventsSlice slice = readEvents(forward, start, count, entries, reverseOrder, traceString);
-         LOG.debug("#<>#<># [" + traceString + "]" + msg + " found slice from " + slice.getFromEventNumber() + "-" + slice.getNextEventNumber());
-         return slice;
+         return readEvents(forward, start, entries, reverseOrder);
       } catch (final URISyntaxException ex) {
          throw new ReadFailedException(streamName, msg, ex);
       }
    }
 
    private List<Entry> readFeed(final String streamName, final URI uri, final String msg, final String traceString) throws ReadFailedException {
-      LOG.debug("#<>#<># [" + traceString + "] reading feed from " + uri.toString());
+      final Timer startTimer = SLICE_READ_HISTOGRAM.labels(streamName, identifier, host)
+            .startTimer();
+
       final HttpGet get = createHttpGet(uri);
       try {
          final Future<HttpResponse> future = httpclient.execute(get, null);
          final HttpResponse response = future.get();
-         LOG.debug("#<>#<># [" + traceString + "]" + response.getStatusLine() + " for feed from " + uri.toString());
+
          final StatusLine statusLine = response.getStatusLine();
          if (statusLine.getStatusCode() == 200) {
-            final HttpEntity entity = response.getEntity();
+            HttpEntity entity = response.getEntity();
+
+            final Header contentEncodingHeader = entity.getContentEncoding();
+            if (contentEncodingHeader != null) {
+               final HeaderElement[] encodings = contentEncodingHeader.getElements();
+               for (final HeaderElement encoding : encodings) {
+                  if (encoding.getName()
+                        .equalsIgnoreCase("gzip")) {
+                     entity = new GzipDecompressingEntity(entity);
+                     break;
+                  }
+               }
+            }
+
             try {
                final InputStream in = entity.getContent();
                try {
                   final List<Entry> entries = atomFeedReader.readAtomFeed(in);
-                  LOG.debug("#<>#<># [" + traceString + "] created " + entries.size() + " entries from atomfeed");
+                  LOG.info("[" + traceString + "] found " + entries.size() + " in feed for: " + uri.toString());
                   return entries;
                } finally {
                   in.close();
@@ -214,43 +270,38 @@ public final class ESHttpEventStore {
          }
          if (statusLine.getStatusCode() == 404) {
             // 404 Not Found
-            LOG.debug("#<>#<># [" + traceString + "] " + msg + " RESPONSE: {}", response);
+            LOG.warn("[" + traceString + "] " + msg + " RESPONSE: {}", response);
             throw new StreamNotFoundException(streamName);
          }
          if (statusLine.getStatusCode() == 410) {
             // Stream was hard deleted
-            LOG.debug("#<>#<># [" + traceString + "] " + msg + " RESPONSE: {}", response);
+            LOG.warn("[" + traceString + "] " + msg + " RESPONSE: {}", response);
             throw new StreamDeletedException(streamName);
          }
+         LOG.warn("[" + traceString + "] " + msg + " RESPONSE: {}", response);
          throw new UnknownServerResponseException(streamName, " [Status=" + statusLine + "]");
       } catch (final Exception e) {
          throw new ReadFailedException(streamName, msg, e);
       } finally {
+         startTimer.observeDuration();
          get.reset();
       }
    }
 
-   private StreamEventsSlice readEvents(final boolean forward, final int fromEventNumber, final int count, final List<Entry> entries, final boolean reverseOrder, final String traceString)
-         throws ReadFailedException, URISyntaxException {
+   private StreamEventsSlice readEvents(final boolean forward, final long fromEventNumber, final List<Entry> entries, final boolean reverseOrder) throws ReadFailedException, URISyntaxException {
       final List<EventResponse> events = new ArrayList<>();
       if (reverseOrder) {
          for (int i = 0; i < entries.size(); i++) {
             final Entry entry = entries.get(i);
-            events.add(enrich(readEvent(new URI(entry.getId()), traceString), entry));
+            events.add(doit(entry));
          }
       } else {
          for (int i = entries.size() - 1; i >= 0; i--) {
             final Entry entry = entries.get(i);
-            try {
-               final EventResponse event = readEvent(new URI(entry.getId()), traceString);
-               final EventResponse enrichedEvent = enrich(event, entry);
-               events.add(enrichedEvent);
-            } catch (final ReadFailedException e) {
-               continue;
-            }
+            events.add(doit(entry));
          }
       }
-      final int nextEventNumber;
+      final long nextEventNumber;
       final boolean endOfStream;
       if (forward) {
          nextEventNumber = fromEventNumber + events.size();
@@ -265,6 +316,33 @@ public final class ESHttpEventStore {
             .nextEventNumber(nextEventNumber)
             .events(events)
             .endOfStream(endOfStream)
+            .build();
+   }
+
+   private EventResponse doit(final Entry entry) {
+      return EventResponse.builder()
+            .author(entry.getAuthor())
+            .summary(entry.getSummary())
+            .id(entry.getId())
+            .title(entry.getTitle())
+            .updated(entry.getUpdated())
+            .content(Event.builder()
+                  .author(entry.getAuthor())
+                  .data(entry.getData())
+                  .eventId(entry.getEventId())
+                  .eventNumber(entry.getEventNumber())
+                  .eventStreamId(entry.getStreamId())
+                  .eventType(entry.getEventType())
+                  .id(entry.getId())
+                  .isLinkMetaData(entry.getIsLinkMetaData())
+                  .metadata(entry.getMetaData())
+                  .positionEventNumber(entry.getPositionEventNumber())
+                  .positionStreamId(entry.getPositionStreamId())
+                  .streamId(entry.getStreamId())
+                  .summary(entry.getSummary())
+                  .title(entry.getTitle())
+                  .updated(entry.getUpdated())
+                  .build())
             .build();
    }
 
@@ -287,57 +365,62 @@ public final class ESHttpEventStore {
    }
 
    private EventResponse readEvent(final URI uri, final String traceString) throws ReadFailedException {
-      final Instant start = Instant.now();
+
       final String streamName = streamName(uri);
+
+      final String msg = "readEvent(" + uri + ")";
+
+      final Timer startTimer = EVENT_READ_HISTOGRAM.labels(streamName, identifier, host)
+            .startTimer();
+
+      final HttpGet get = createHttpGet(uri);
       try {
+         final Future<HttpResponse> future = httpclient.execute(get, null);
+         final HttpResponse response = future.get();
+         final StatusLine statusLine = response.getStatusLine();
+         if (statusLine.getStatusCode() == 200) {
+            HttpEntity entity = response.getEntity();
 
-         LOG.debug("#<>#<># [" + traceString + "] reading event from " + uri);
-
-         LOG.debug(uri.toString());
-         final String msg = "readEvent(" + uri + ")";
-
-         final HttpGet get = createHttpGet(uri);
-         try {
-            final Instant requestStart = Instant.now();
-            final Future<HttpResponse> future = httpclient.execute(get, null);
-            final HttpResponse response = future.get();
-            final Duration duration = Duration.between(requestStart, Instant.now());
-            PrometheusMonitoringService.eventRequestDuration(duration.toMillis(), streamName, identifier, host);
-            final StatusLine statusLine = response.getStatusLine();
-            LOG.debug("#<>#<># [" + traceString + "] reading event from " + uri + " with statusCode " + statusLine);
-            if (statusLine.getStatusCode() == 200) {
-               final HttpEntity entity = response.getEntity();
-               try {
-                  final InputStream in = entity.getContent();
-                  try {
-                     final EventResponse eventResponse = atomFeedReader.readEvent(in);
-                     LOG.debug("#<>#<># [" + traceString + "] reading event from " + uri + " with response " + eventResponse);
-                     return eventResponse;
-                  } finally {
-                     in.close();
+            final Header contentEncodingHeader = entity.getContentEncoding();
+            if (contentEncodingHeader != null) {
+               final HeaderElement[] encodings = contentEncodingHeader.getElements();
+               for (final HeaderElement encoding : encodings) {
+                  if (encoding.getName()
+                        .equalsIgnoreCase("gzip")) {
+                     entity = new GzipDecompressingEntity(entity);
+                     break;
                   }
-               } finally {
-                  EntityUtils.consume(entity);
                }
             }
-            if (statusLine.getStatusCode() == 404) {
-               // 404 Not Found
-               LOG.debug(msg + " RESPONSE: {}", response);
-               final int eventNumber = eventNumber(uri);
-               throw new EventNotFoundException(streamName, eventNumber);
-            }
-            throw new ReadFailedException(streamName, msg + " [Status=" + statusLine + "]");
 
-         } catch (final Exception e) {
-            throw new ReadFailedException(streamName, msg, e);
-         } finally {
-            get.reset();
+            try {
+               final InputStream in = entity.getContent();
+               try {
+                  final EventResponse eventResponse = atomFeedReader.readEvent(in);
+                  LOG.info("[" + traceString + "] read event from " + uri + " with response " + eventResponse);
+                  return eventResponse;
+               } finally {
+                  in.close();
+               }
+            } finally {
+               EntityUtils.consume(entity);
+            }
          }
+         if (statusLine.getStatusCode() == 404) {
+            // 404 Not Found
+            LOG.warn("[" + traceString + "]" + msg + " RESPONSE: {}", response);
+            final int eventNumber = eventNumber(uri);
+            throw new EventNotFoundException(streamName, eventNumber);
+         }
+         throw new ReadFailedException(streamName, msg + " [Status=" + statusLine + "]");
+
+      } catch (final Exception e) {
+         throw new ReadFailedException(streamName, msg, e);
       } finally {
-         final Instant end = Instant.now();
-         PrometheusMonitoringService.eventReadDuration(Duration.between(start, end)
-               .toMillis(), streamName, identifier, host);
+         startTimer.observeDuration();
+         get.reset();
       }
+
    }
 
    private String streamName(final URI uri) {
@@ -367,9 +450,11 @@ public final class ESHttpEventStore {
    }
 
    private HttpGet createHttpGet(final URI uri) {
-      final HttpGet request = new HttpGet(uri + "?embed=rich");
+      final HttpGet request = new HttpGet(uri + "?embed=body");
+      request.setHeader("Accept-Encoding", "gzip");
       request.setHeader("Accept", "application/vnd.eventstore.atom+json");
       request.setHeader("ES-LongPoll", String.valueOf(longPollSec));
       return request;
    }
+
 }

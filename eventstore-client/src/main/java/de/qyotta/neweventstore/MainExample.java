@@ -15,12 +15,14 @@ public class MainExample {
    private static String streamName;
    private static int retryWaitTime;
 
+   // $ curl -i http://p0q1:2113/streams/journal-73/0/forward/2?embed=body -H "Accept-Encoding: gzip" -H "Accept: application/vnd.eventstore.atom+json" -H "ES-LongPoll: 30"
+
    public static void main(String[] args) throws ReadFailedException, MalformedURLException, InterruptedException {
       final BasicCredentialsProvider credentialsProvider = new BasicCredentialsProvider();
-      credentialsProvider.setCredentials(AuthScope.ANY, new UsernamePasswordCredentials("admin", "tynW3Z9bWUeD4K8B3t4d"));
+      credentialsProvider.setCredentials(AuthScope.ANY, new UsernamePasswordCredentials("admin", "yDdAquhKdXFKft2NbCxM"));
 
-      esHttpEventStore = new ESHttpEventStore("", new URL("http://localhost:2123"), credentialsProvider);
-      streamName = "$ce-mda";
+      esHttpEventStore = new ESHttpEventStore("", new URL("http://localhost:2113"), credentialsProvider);
+      streamName = "$ce-domain";
 
       // readBackwards();
       readForward();
@@ -31,17 +33,17 @@ public class MainExample {
 
       final long start = System.currentTimeMillis();
 
-      int nextEventNumber = 0;
+      StreamEventsSlice slice = StreamEventsSlice.builder()
+            .nextEventNumber(19)
+            .build();
 
       while (true) {
          try {
-            final StreamEventsSlice slice = esHttpEventStore.readEventsForward(streamName, nextEventNumber, 500, "");
-
-            nextEventNumber = slice.getNextEventNumber();
+            slice = esHttpEventStore.readEventsForward(streamName, slice, 4096, "");
 
             final long end = System.currentTimeMillis();
 
-            final double throughput = nextEventNumber / (double) ((end - start) / 1000);
+            final double throughput = slice.getNextEventNumber() / (double) ((end - start) / 1000);
 
             String x = "";
 
@@ -68,9 +70,14 @@ public class MainExample {
       final EventResponse lastEvent = esHttpEventStore.readLastEvent(streamName);
       Long nextEventNumber = lastEvent.getContent()
             .getPositionEventNumber();
+
+      StreamEventsSlice slice = StreamEventsSlice.builder()
+            .nextEventNumber(nextEventNumber)
+            .build();
+
       while (true) {
          try {
-            final StreamEventsSlice slice = esHttpEventStore.readEventsBackward(streamName, nextEventNumber.intValue(), 500, "");
+            slice = esHttpEventStore.readEventsBackward(streamName, slice, 4096, "");
 
             nextEventNumber = Long.valueOf(slice.getNextEventNumber());
 

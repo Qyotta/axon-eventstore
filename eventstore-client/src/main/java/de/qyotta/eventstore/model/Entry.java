@@ -22,6 +22,8 @@ public class Entry {
    private String eventId;
    private String eventType;
    private Long eventNumber;
+   private String data;
+   private String metaData;
    private String streamId;
    private Boolean isLinkMetaData;
    private Long positionEventNumber;
