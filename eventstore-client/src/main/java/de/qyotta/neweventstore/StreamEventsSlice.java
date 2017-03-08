@@ -19,9 +19,9 @@ import lombok.ToString;
 @AllArgsConstructor(access = AccessLevel.PUBLIC)
 public final class StreamEventsSlice {
 
-   private final int fromEventNumber;
+   private final long fromEventNumber;
 
-   private final int nextEventNumber;
+   private final long nextEventNumber;
 
    private final boolean endOfStream;
 
