@@ -19,7 +19,7 @@ public class MainExample {
 
    public static void main(String[] args) throws ReadFailedException, MalformedURLException, InterruptedException {
       final BasicCredentialsProvider credentialsProvider = new BasicCredentialsProvider();
-      credentialsProvider.setCredentials(AuthScope.ANY, new UsernamePasswordCredentials("admin", "yDdAquhKdXFKft2NbCxM"));
+      credentialsProvider.setCredentials(AuthScope.ANY, new UsernamePasswordCredentials(args[0], args[1]));
 
       esHttpEventStore = new ESHttpEventStore("", new URL("http://localhost:2113"), credentialsProvider);
       streamName = "$ce-domain";
