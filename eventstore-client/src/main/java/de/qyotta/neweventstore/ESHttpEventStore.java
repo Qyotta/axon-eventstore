@@ -1,5 +1,12 @@
 package de.qyotta.neweventstore;
 
+import de.qyotta.eventstore.model.Entry;
+import de.qyotta.eventstore.model.Event;
+import de.qyotta.eventstore.model.EventResponse;
+import de.qyotta.eventstore.utils.DefaultConnectionKeepAliveStrategy;
+import io.prometheus.client.Histogram;
+import io.prometheus.client.Histogram.Timer;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
@@ -25,13 +32,6 @@ import org.apache.http.impl.nio.client.HttpAsyncClients;
 import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import de.qyotta.eventstore.model.Entry;
-import de.qyotta.eventstore.model.Event;
-import de.qyotta.eventstore.model.EventResponse;
-import de.qyotta.eventstore.utils.DefaultConnectionKeepAliveStrategy;
-import io.prometheus.client.Histogram;
-import io.prometheus.client.Histogram.Timer;
 
 @SuppressWarnings("nls")
 public final class ESHttpEventStore {
@@ -199,8 +199,9 @@ public final class ESHttpEventStore {
     * </ul>
     */
    private long getNumberOfEventsToRead(final long start, long sliceSize) {
-      if (start % sliceSize != 0) {
-         return sliceSize - start;
+      final long diff = start % sliceSize;
+      if (diff != 0) {
+         return sliceSize - diff;
       }
       return sliceSize;
    }
@@ -307,7 +308,11 @@ public final class ESHttpEventStore {
          nextEventNumber = fromEventNumber + events.size();
          endOfStream = count > events.size();
       } else {
-         nextEventNumber = fromEventNumber - count < 0 ? 0 : fromEventNumber - count;
+         if ((fromEventNumber - count) < 0) {
+            nextEventNumber = 0;
+         } else {
+            nextEventNumber = (fromEventNumber - count);
+         }
          endOfStream = fromEventNumber - count < 0;
       }
 
