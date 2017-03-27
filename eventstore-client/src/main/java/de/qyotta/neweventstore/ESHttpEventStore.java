@@ -160,15 +160,8 @@ public final class ESHttpEventStore {
       }
    }
 
-   public StreamEventsSlice readEventsForward(String streamName, StreamEventsSlice slice, int pCount, String traceString) throws ReadFailedException {
+   public StreamEventsSlice readEventsForward(final String streamName, final long start, int pCount, final String traceString) throws ReadFailedException {
       this.count = pCount;
-      if (slice == null) {
-         return readEventsForward(streamName, 0, traceString);
-      }
-      return readEventsForward(streamName, slice.getNextEventNumber(), traceString);
-   }
-
-   private StreamEventsSlice readEventsForward(final String streamName, final long start, final String traceString) throws ReadFailedException {
       ensureOpen();
 
       final long numberOfeventsToRead = getNumberOfEventsToRead(start, count);
