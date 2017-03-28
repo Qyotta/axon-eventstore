@@ -1,12 +1,5 @@
 package de.qyotta.neweventstore;
 
-import de.qyotta.eventstore.model.Entry;
-import de.qyotta.eventstore.model.Event;
-import de.qyotta.eventstore.model.EventResponse;
-import de.qyotta.eventstore.utils.DefaultConnectionKeepAliveStrategy;
-import io.prometheus.client.Histogram;
-import io.prometheus.client.Histogram.Timer;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
@@ -32,6 +25,13 @@ import org.apache.http.impl.nio.client.HttpAsyncClients;
 import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import de.qyotta.eventstore.model.Entry;
+import de.qyotta.eventstore.model.Event;
+import de.qyotta.eventstore.model.EventResponse;
+import de.qyotta.eventstore.utils.DefaultConnectionKeepAliveStrategy;
+import io.prometheus.client.Histogram;
+import io.prometheus.client.Histogram.Timer;
 
 @SuppressWarnings("nls")
 public final class ESHttpEventStore {
@@ -149,7 +149,6 @@ public final class ESHttpEventStore {
       try {
          final URI uri = new URIBuilder(url.toURI()).setPath("/streams/" + streamName + "/head/backward/1")
                .build();
-
          final List<Entry> entries = readFeed(streamName, uri, msg, "");
          final Entry entry = entries.get(0);
 
@@ -164,11 +163,9 @@ public final class ESHttpEventStore {
       this.count = pCount;
       ensureOpen();
 
-      final long numberOfeventsToRead = getNumberOfEventsToRead(start, count);
-
-      final String msg = "readEventsForward(" + streamName + ", " + start + ", " + numberOfeventsToRead + ")";
+      final String msg = "readEventsForward(" + streamName + ", " + start + ", " + count + ")";
       try {
-         final URI uri = new URIBuilder(url.toURI()).setPath("/streams/" + streamName + "/" + start + "/forward/" + numberOfeventsToRead)
+         final URI uri = new URIBuilder(url.toURI()).setPath("/streams/" + streamName + "/" + start + "/forward/" + count)
                .build();
 
          final boolean reverseOrder = false;
@@ -179,24 +176,6 @@ public final class ESHttpEventStore {
       } catch (final URISyntaxException ex) {
          throw new ReadFailedException(streamName, msg, ex);
       }
-   }
-
-   /**
-    * This method returns the number of events to read next. It tries to respect the sliceSize, so that at most one read is out-of-bounds. Example:
-    *
-    * <ul>
-    * <li>start=0, sliceSize=4096 => start=0, count=4096 (unmodified)</li>
-    * <li>start=1, sliceSize=4096 => start=1, count=4095 (we initially read 4095 events. The next read slice witll start at 4096)</li>
-    * <li>start=4095, forward=4096 => start=4095, count=1 (we initially read 1 event. The next read slice witll start at 4096)</li>
-    * <li>start=4096, forward=4096 => start=4096, count=4096 (unmodified)</li>
-    * </ul>
-    */
-   private long getNumberOfEventsToRead(final long start, long sliceSize) {
-      final long diff = start % sliceSize;
-      if (diff != 0) {
-         return sliceSize - diff;
-      }
-      return sliceSize;
    }
 
    public StreamEventsSlice readEventsBackward(String streamName, StreamEventsSlice slice, int pCount, String traceString) throws ReadFailedException {
@@ -301,10 +280,10 @@ public final class ESHttpEventStore {
          nextEventNumber = fromEventNumber + events.size();
          endOfStream = count > events.size();
       } else {
-         if ((fromEventNumber - count) < 0) {
+         if (fromEventNumber - count < 0) {
             nextEventNumber = 0;
          } else {
-            nextEventNumber = (fromEventNumber - count);
+            nextEventNumber = fromEventNumber - count;
          }
          endOfStream = fromEventNumber - count < 0;
       }
@@ -454,5 +433,4 @@ public final class ESHttpEventStore {
       request.setHeader("ES-LongPoll", String.valueOf(longPollSec));
       return request;
    }
-
 }

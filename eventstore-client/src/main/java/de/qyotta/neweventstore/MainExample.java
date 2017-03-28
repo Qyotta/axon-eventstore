@@ -32,12 +32,12 @@ public class MainExample {
       retryWaitTime = 1;
 
       final long start = System.currentTimeMillis();
-      
-      long nextEventNumber = 19L;
+
+      long nextEventNumber = 5611785L;
 
       while (true) {
          try {
-            StreamEventsSlice slice = esHttpEventStore.readEventsForward(streamName, nextEventNumber, 4096, "");
+            final StreamEventsSlice slice = esHttpEventStore.readEventsForward(streamName, nextEventNumber, 5, "");
 
             final long end = System.currentTimeMillis();
 
