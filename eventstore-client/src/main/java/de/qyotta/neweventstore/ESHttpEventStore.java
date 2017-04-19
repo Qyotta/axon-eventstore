@@ -36,18 +36,18 @@ import io.prometheus.client.Histogram.Timer;
 @SuppressWarnings("nls")
 public final class ESHttpEventStore {
    private static final int DEFAUT_LONG_POLL = 30;
-
+   private static final String HOST_HEADER = "HOST";
    private static final Histogram SLICE_READ_HISTOGRAM = Histogram.build()
          .name("de_qyotta_http_reader_slice_read_time")
          .help("Read time per event slice")
-         .labelNames("stream", "identifier", "host")
+         .labelNames("stream", "identifier", "hostAndPort")
          .buckets(0.01, 0.100, 1, 10, DEFAUT_LONG_POLL)
          .register();
 
    private static final Histogram EVENT_READ_HISTOGRAM = Histogram.build()
          .name("de_qyotta_http_reader_event_request_time")
          .help("Time for a single event request")
-         .labelNames("stream", "identifier", "host")
+         .labelNames("stream", "identifier", "hostAndPort")
          .buckets(0.01, 0.100, 1, 10)
          .register();
 
@@ -67,7 +67,8 @@ public final class ESHttpEventStore {
 
    private final int longPollSec;
    private final String identifier;
-   private final String host;
+   private final String hostAndPort;
+   private String host;
 
    private int count;
 
@@ -87,8 +88,13 @@ public final class ESHttpEventStore {
       this.credentialsProvider = credentialsProvider;
       this.longPollSec = longPollSec;
       this.open = false;
-      this.host = url.getHost() + ":" + url.getPort();
+      this.hostAndPort = url.getHost() + ":" + url.getPort();
+      this.host = url.getHost();
       atomFeedReader = new AtomFeedJsonReader();
+   }
+
+   public void setHost(final String host) {
+      this.host = host;
    }
 
    private void open() {
@@ -204,7 +210,7 @@ public final class ESHttpEventStore {
    }
 
    private List<Entry> readFeed(final String streamName, final URI uri, final String msg, final String traceString) throws ReadFailedException {
-      final Timer startTimer = SLICE_READ_HISTOGRAM.labels(streamName, identifier, host)
+      final Timer startTimer = SLICE_READ_HISTOGRAM.labels(streamName, identifier, hostAndPort)
             .startTimer();
 
       final HttpGet get = createHttpGet(uri);
@@ -347,7 +353,7 @@ public final class ESHttpEventStore {
 
       final String msg = "readEvent(" + uri + ")";
 
-      final Timer startTimer = EVENT_READ_HISTOGRAM.labels(streamName, identifier, host)
+      final Timer startTimer = EVENT_READ_HISTOGRAM.labels(streamName, identifier, hostAndPort)
             .startTimer();
 
       final HttpGet get = createHttpGet(uri);
@@ -431,6 +437,7 @@ public final class ESHttpEventStore {
       request.setHeader("Accept-Encoding", "gzip");
       request.setHeader("Accept", "application/vnd.eventstore.atom+json");
       request.setHeader("ES-LongPoll", String.valueOf(longPollSec));
+      request.setHeader(HOST_HEADER, host);
       return request;
    }
 }
