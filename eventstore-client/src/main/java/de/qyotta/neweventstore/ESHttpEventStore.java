@@ -1,12 +1,5 @@
 package de.qyotta.neweventstore;
 
-import de.qyotta.eventstore.model.Entry;
-import de.qyotta.eventstore.model.Event;
-import de.qyotta.eventstore.model.EventResponse;
-import de.qyotta.eventstore.utils.DefaultConnectionKeepAliveStrategy;
-import io.prometheus.client.Histogram;
-import io.prometheus.client.Histogram.Timer;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
@@ -33,21 +26,28 @@ import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import de.qyotta.eventstore.model.Entry;
+import de.qyotta.eventstore.model.Event;
+import de.qyotta.eventstore.model.EventResponse;
+import de.qyotta.eventstore.utils.DefaultConnectionKeepAliveStrategy;
+import io.prometheus.client.Histogram;
+import io.prometheus.client.Histogram.Timer;
+
 @SuppressWarnings("nls")
 public final class ESHttpEventStore {
    private static final int DEFAUT_LONG_POLL = 30;
-
+   private static final String HOST_HEADER = "HOST";
    private static final Histogram SLICE_READ_HISTOGRAM = Histogram.build()
          .name("de_qyotta_http_reader_slice_read_time")
          .help("Read time per event slice")
-         .labelNames("stream", "identifier", "host")
+         .labelNames("stream", "identifier", "hostAndPort")
          .buckets(0.01, 0.100, 1, 10, DEFAUT_LONG_POLL)
          .register();
 
    private static final Histogram EVENT_READ_HISTOGRAM = Histogram.build()
          .name("de_qyotta_http_reader_event_request_time")
          .help("Time for a single event request")
-         .labelNames("stream", "identifier", "host")
+         .labelNames("stream", "identifier", "hostAndPort")
          .buckets(0.01, 0.100, 1, 10)
          .register();
 
@@ -67,7 +67,8 @@ public final class ESHttpEventStore {
 
    private final int longPollSec;
    private final String identifier;
-   private final String host;
+   private final String hostAndPort;
+   private String host;
 
    private int count;
 
@@ -87,8 +88,13 @@ public final class ESHttpEventStore {
       this.credentialsProvider = credentialsProvider;
       this.longPollSec = longPollSec;
       this.open = false;
-      this.host = url.getHost() + ":" + url.getPort();
+      this.hostAndPort = url.getHost() + ":" + url.getPort();
+      this.host = url.getHost();
       atomFeedReader = new AtomFeedJsonReader();
+   }
+
+   public void setHost(final String host) {
+      this.host = host;
    }
 
    private void open() {
@@ -149,7 +155,6 @@ public final class ESHttpEventStore {
       try {
          final URI uri = new URIBuilder(url.toURI()).setPath("/streams/" + streamName + "/head/backward/1")
                .build();
-
          final List<Entry> entries = readFeed(streamName, uri, msg, "");
          final Entry entry = entries.get(0);
 
@@ -160,22 +165,13 @@ public final class ESHttpEventStore {
       }
    }
 
-   public StreamEventsSlice readEventsForward(String streamName, StreamEventsSlice slice, int pCount, String traceString) throws ReadFailedException {
+   public StreamEventsSlice readEventsForward(final String streamName, final long start, int pCount, final String traceString) throws ReadFailedException {
       this.count = pCount;
-      if (slice == null) {
-         return readEventsForward(streamName, 0, traceString);
-      }
-      return readEventsForward(streamName, slice.getNextEventNumber(), traceString);
-   }
-
-   private StreamEventsSlice readEventsForward(final String streamName, final long start, final String traceString) throws ReadFailedException {
       ensureOpen();
 
-      final long numberOfeventsToRead = getNumberOfEventsToRead(start, count);
-
-      final String msg = "readEventsForward(" + streamName + ", " + start + ", " + numberOfeventsToRead + ")";
+      final String msg = "readEventsForward(" + streamName + ", " + start + ", " + count + ")";
       try {
-         final URI uri = new URIBuilder(url.toURI()).setPath("/streams/" + streamName + "/" + start + "/forward/" + numberOfeventsToRead)
+         final URI uri = new URIBuilder(url.toURI()).setPath("/streams/" + streamName + "/" + start + "/forward/" + count)
                .build();
 
          final boolean reverseOrder = false;
@@ -186,24 +182,6 @@ public final class ESHttpEventStore {
       } catch (final URISyntaxException ex) {
          throw new ReadFailedException(streamName, msg, ex);
       }
-   }
-
-   /**
-    * This method returns the number of events to read next. It tries to respect the sliceSize, so that at most one read is out-of-bounds. Example:
-    *
-    * <ul>
-    * <li>start=0, sliceSize=4096 => start=0, count=4096 (unmodified)</li>
-    * <li>start=1, sliceSize=4096 => start=1, count=4095 (we initially read 4095 events. The next read slice witll start at 4096)</li>
-    * <li>start=4095, forward=4096 => start=4095, count=1 (we initially read 1 event. The next read slice witll start at 4096)</li>
-    * <li>start=4096, forward=4096 => start=4096, count=4096 (unmodified)</li>
-    * </ul>
-    */
-   private long getNumberOfEventsToRead(final long start, long sliceSize) {
-      final long diff = start % sliceSize;
-      if (diff != 0) {
-         return sliceSize - diff;
-      }
-      return sliceSize;
    }
 
    public StreamEventsSlice readEventsBackward(String streamName, StreamEventsSlice slice, int pCount, String traceString) throws ReadFailedException {
@@ -232,7 +210,7 @@ public final class ESHttpEventStore {
    }
 
    private List<Entry> readFeed(final String streamName, final URI uri, final String msg, final String traceString) throws ReadFailedException {
-      final Timer startTimer = SLICE_READ_HISTOGRAM.labels(streamName, identifier, host)
+      final Timer startTimer = SLICE_READ_HISTOGRAM.labels(streamName, identifier, hostAndPort)
             .startTimer();
 
       final HttpGet get = createHttpGet(uri);
@@ -308,10 +286,10 @@ public final class ESHttpEventStore {
          nextEventNumber = fromEventNumber + events.size();
          endOfStream = count > events.size();
       } else {
-         if ((fromEventNumber - count) < 0) {
+         if (fromEventNumber - count < 0) {
             nextEventNumber = 0;
          } else {
-            nextEventNumber = (fromEventNumber - count);
+            nextEventNumber = fromEventNumber - count;
          }
          endOfStream = fromEventNumber - count < 0;
       }
@@ -375,7 +353,7 @@ public final class ESHttpEventStore {
 
       final String msg = "readEvent(" + uri + ")";
 
-      final Timer startTimer = EVENT_READ_HISTOGRAM.labels(streamName, identifier, host)
+      final Timer startTimer = EVENT_READ_HISTOGRAM.labels(streamName, identifier, hostAndPort)
             .startTimer();
 
       final HttpGet get = createHttpGet(uri);
@@ -459,7 +437,7 @@ public final class ESHttpEventStore {
       request.setHeader("Accept-Encoding", "gzip");
       request.setHeader("Accept", "application/vnd.eventstore.atom+json");
       request.setHeader("ES-LongPoll", String.valueOf(longPollSec));
+      request.setHeader(HOST_HEADER, host);
       return request;
    }
-
 }

@@ -19,7 +19,7 @@ public class MainExample {
 
    public static void main(String[] args) throws ReadFailedException, MalformedURLException, InterruptedException {
       final BasicCredentialsProvider credentialsProvider = new BasicCredentialsProvider();
-      credentialsProvider.setCredentials(AuthScope.ANY, new UsernamePasswordCredentials(args[0], args[1]));
+      credentialsProvider.setCredentials(AuthScope.ANY, new UsernamePasswordCredentials("admin", "yDdAquhKdXFKft2NbCxM"));
 
       esHttpEventStore = new ESHttpEventStore("", new URL("http://localhost:2113"), credentialsProvider);
       streamName = "$ce-domain";
@@ -33,13 +33,11 @@ public class MainExample {
 
       final long start = System.currentTimeMillis();
 
-      StreamEventsSlice slice = StreamEventsSlice.builder()
-            .nextEventNumber(19)
-            .build();
+      long nextEventNumber = 5611785L;
 
       while (true) {
          try {
-            slice = esHttpEventStore.readEventsForward(streamName, slice, 4096, "");
+            final StreamEventsSlice slice = esHttpEventStore.readEventsForward(streamName, nextEventNumber, 5, "");
 
             final long end = System.currentTimeMillis();
 
@@ -54,6 +52,7 @@ public class MainExample {
             x += "Read " + slice.getNextEventNumber() + ". throughput:" + throughput + " events/s";
 
             System.out.println(x);
+            nextEventNumber = slice.getNextEventNumber();
             retryWaitTime = 1;
          } catch (final Exception e) {
             System.err.println("Failed to process. Job ends now, but will be re-scheduled in " + retryWaitTime + " ms. Don't worry: " + e + " caused by: " + e.getCause()
