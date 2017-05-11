@@ -1,0 +1,25 @@
+<configuration>
+   <contextListener class="ch.qos.logback.classic.jul.LevelChangePropagator">
+      <resetJUL>true</resetJUL>
+   </contextListener>
+
+   <jmxConfigurator />
+
+   <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+      <layout class="ch.qos.logback.classic.PatternLayout">
+         <Pattern>
+            %d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n
+         </Pattern>
+      </layout>
+   </appender>
+   <logger name="org.springframework.web" level="ERROR" />
+
+   <logger name="org.axonframework" level="ERROR" />
+   <logger name="de.qyotta.eventstore.communication" level="ERROR" />
+   <logger name="de.qyotta.eventstore" level="ERROR" />
+
+   <!-- Setting the root level of logging to INFO -->
+   <root level="ERROR">
+      <appender-ref ref="CONSOLE" />
+   </root>
+</configuration>
