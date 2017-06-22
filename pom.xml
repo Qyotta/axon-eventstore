@@ -36,6 +36,15 @@
         <module>esjc-axon-eventstore</module>
       </modules>
     </profile>
+    <profile>
+      <id>release</id>
+      <distributionManagement>
+        <repository>
+          <id>nexus-deployment</id>
+          <url>http://nexus.team/nexus/content/repositories/releases/</url>
+        </repository>
+      </distributionManagement>
+    </profile>
   </profiles>
   <build>
     <plugins>
