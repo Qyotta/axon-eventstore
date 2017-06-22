@@ -85,6 +85,10 @@
             </goals>
           </execution>
         </executions>
+        <configuration>
+          <deployAtEnd>true</deployAtEnd>
+          <retryFailedDeploymentCount>5</retryFailedDeploymentCount>
+        </configuration>
       </plugin>
     </plugins>
   </build>
