@@ -21,6 +21,6 @@ node('jenkins-slave-java8-maven') {
     }
 
     stage('Nexus Deploy') {
-        sh 'mvn deploy -P release -Dmaven.test.skip=true'
+        sh 'mvn deploy -P release -DskipTests=true'
     }
 }
