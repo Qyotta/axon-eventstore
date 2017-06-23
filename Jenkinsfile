@@ -1,6 +1,6 @@
 #!/usr/bin/env groovy
 
-node('jenkins-slave-java8-maven') {
+node('debian-maven') {
     stage('Checkout') {
         checkout scm
         
