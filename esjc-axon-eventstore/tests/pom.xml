@@ -13,7 +13,7 @@
       <jackson.version>2.8.1</jackson.version>
       <jackson.annotations.version>2.8.1</jackson.annotations.version>
       <jackson.databind.version>2.8.1</jackson.databind.version>
-      <esjc.version>1.7.0</esjc.version>
+      <esjc.version>1.8.1</esjc.version>
    </properties>
    <dependencies>
       <dependency>
@@ -60,7 +60,7 @@
       <dependency>
          <groupId>de.qyotta.eventstore</groupId>
          <artifactId>esjc-axon-eventstore</artifactId>
-         <version>1.0.0</version>
+         <version>1.0.3</version>
          <scope>test</scope>
       </dependency>
    </dependencies>

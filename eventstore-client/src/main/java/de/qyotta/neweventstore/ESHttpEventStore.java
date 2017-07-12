@@ -1,5 +1,12 @@
 package de.qyotta.neweventstore;
 
+import de.qyotta.eventstore.model.Entry;
+import de.qyotta.eventstore.model.Event;
+import de.qyotta.eventstore.model.EventResponse;
+import de.qyotta.eventstore.utils.DefaultConnectionKeepAliveStrategy;
+import io.prometheus.client.Histogram;
+import io.prometheus.client.Histogram.Timer;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
@@ -26,13 +33,6 @@ import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import de.qyotta.eventstore.model.Entry;
-import de.qyotta.eventstore.model.Event;
-import de.qyotta.eventstore.model.EventResponse;
-import de.qyotta.eventstore.utils.DefaultConnectionKeepAliveStrategy;
-import io.prometheus.client.Histogram;
-import io.prometheus.client.Histogram.Timer;
-
 @SuppressWarnings("nls")
 public final class ESHttpEventStore {
    private static final int DEFAUT_LONG_POLL = 30;
@@ -40,14 +40,14 @@ public final class ESHttpEventStore {
    private static final Histogram SLICE_READ_HISTOGRAM = Histogram.build()
          .name("de_qyotta_http_reader_slice_read_time")
          .help("Read time per event slice")
-         .labelNames("stream", "identifier", "hostAndPort")
+         .labelNames( "identifier", "hostAndPort")
          .buckets(0.01, 0.100, 1, 10, DEFAUT_LONG_POLL)
          .register();
 
    private static final Histogram EVENT_READ_HISTOGRAM = Histogram.build()
          .name("de_qyotta_http_reader_event_request_time")
          .help("Time for a single event request")
-         .labelNames("stream", "identifier", "hostAndPort")
+         .labelNames("identifier", "hostAndPort")
          .buckets(0.01, 0.100, 1, 10)
          .register();
 
@@ -210,7 +210,7 @@ public final class ESHttpEventStore {
    }
 
    private List<Entry> readFeed(final String streamName, final URI uri, final String msg, final String traceString) throws ReadFailedException {
-      final Timer startTimer = SLICE_READ_HISTOGRAM.labels(streamName, identifier, hostAndPort)
+      final Timer startTimer = SLICE_READ_HISTOGRAM.labels(identifier, hostAndPort)
             .startTimer();
 
       final HttpGet get = createHttpGet(uri);
@@ -353,7 +353,7 @@ public final class ESHttpEventStore {
 
       final String msg = "readEvent(" + uri + ")";
 
-      final Timer startTimer = EVENT_READ_HISTOGRAM.labels(streamName, identifier, hostAndPort)
+      final Timer startTimer = EVENT_READ_HISTOGRAM.labels(identifier, hostAndPort)
             .startTimer();
 
       final HttpGet get = createHttpGet(uri);
