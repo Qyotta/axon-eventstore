@@ -8,15 +8,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.UUID;
-import java.util.concurrent.ExecutionException;
 
 import org.axonframework.domain.DomainEventMessage;
 import org.axonframework.domain.DomainEventStream;
 import org.axonframework.eventstore.EventStore;
 import org.axonframework.eventstore.EventStreamNotFoundException;
 import org.axonframework.serializer.Revision;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.github.msemys.esjc.EventData;
 import com.github.msemys.esjc.ExpectedVersion;
@@ -27,7 +24,6 @@ import de.qyotta.axonframework.eventstore.utils.EsjcEventstoreUtil;
 
 @SuppressWarnings({ "rawtypes" })
 public class EsjcEventStore implements EventStore {
-   private static final Logger LOGGER = LoggerFactory.getLogger(EsjcEventStore.class);
    private final com.github.msemys.esjc.EventStore client;
    private final Gson gson = new Gson();
    @SuppressWarnings("nls")
@@ -52,17 +48,12 @@ public class EsjcEventStore implements EventStore {
       for (final Entry<Object, List<EventData>> entry : identifierToEventStoreEvents.entrySet()) {
          final String streamName = getStreamName(type, entry.getKey(), prefix);
          final List<EventData> events = entry.getValue();
-         try {
-            client.appendToStream(streamName, ExpectedVersion.ANY, events)
-                  .get();
-         } catch (InterruptedException | ExecutionException e) {
-            LOGGER.error(e.getMessage(), e);
-         }
+         client.appendToStream(streamName, ExpectedVersion.ANY, events);
       }
    }
 
    @Override
-   public DomainEventStream readEvents(String type, Object identifier) {
+   public DomainEventStream readEvents(final String type, final Object identifier) {
       try {
          final String streamName = EsjcEventstoreUtil.getStreamName(type, identifier, prefix);
          final EsjcEventStreamBackedDomainEventStream eventStream = new EsjcEventStreamBackedDomainEventStream(streamName, client);
@@ -96,7 +87,7 @@ public class EsjcEventStore implements EventStore {
             .build();
    }
 
-   private String getPayloadRevision(Class<?> payloadType) {
+   private String getPayloadRevision(final Class<?> payloadType) {
       final Revision revision = payloadType.getDeclaredAnnotation(Revision.class);
       if (revision != null) {
          return revision.value();
@@ -104,7 +95,7 @@ public class EsjcEventStore implements EventStore {
       return null;
    }
 
-   private String serialize(Object payload) {
+   private String serialize(final Object payload) {
       return gson.toJson(payload);
    }
 

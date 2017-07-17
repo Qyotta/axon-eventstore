@@ -7,7 +7,7 @@
    <parent>
       <groupId>de.qyotta.eventstore</groupId>
       <artifactId>axon-eventstore-parent</artifactId>
-      <version>1.0.3</version>
+      <version>1.0.4</version>
    </parent>
 
    <properties>
@@ -21,7 +21,7 @@
       <dependency>
          <groupId>de.qyotta.eventstore</groupId>
          <artifactId>eventstore-client</artifactId>
-         <version>1.0.3</version>
+         <version>1.0.4</version>
       </dependency>
       <dependency>
          <groupId>org.axonframework</groupId>
