@@ -1,12 +1,5 @@
 package de.qyotta.neweventstore;
 
-import de.qyotta.eventstore.model.Entry;
-import de.qyotta.eventstore.model.Event;
-import de.qyotta.eventstore.model.EventResponse;
-import de.qyotta.eventstore.utils.DefaultConnectionKeepAliveStrategy;
-import io.prometheus.client.Histogram;
-import io.prometheus.client.Histogram.Timer;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
@@ -23,6 +16,7 @@ import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.StatusLine;
 import org.apache.http.client.CredentialsProvider;
+import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.entity.GzipDecompressingEntity;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.utils.URIBuilder;
@@ -33,14 +27,25 @@ import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import de.qyotta.eventstore.model.Entry;
+import de.qyotta.eventstore.model.Event;
+import de.qyotta.eventstore.model.EventResponse;
+import de.qyotta.eventstore.utils.DefaultConnectionKeepAliveStrategy;
+import io.prometheus.client.Histogram;
+import io.prometheus.client.Histogram.Timer;
+
 @SuppressWarnings("nls")
 public final class ESHttpEventStore {
+   private static final int DEFAULT_SOCKET_TIMEOUT = 10000;
+   private static final int DEFAULT_CONNECTION_REQUEST_TIMEOUT = 10000;
+   private static final int DEFAULT_CONNECT_TIMEOUT = 10000;
+
    private static final int DEFAUT_LONG_POLL = 30;
    private static final String HOST_HEADER = "HOST";
    private static final Histogram SLICE_READ_HISTOGRAM = Histogram.build()
          .name("de_qyotta_http_reader_slice_read_time")
          .help("Read time per event slice")
-         .labelNames( "identifier", "hostAndPort")
+         .labelNames("identifier", "hostAndPort")
          .buckets(0.01, 0.100, 1, 10, DEFAUT_LONG_POLL)
          .register();
 
@@ -71,22 +76,29 @@ public final class ESHttpEventStore {
    private String host;
 
    private int count;
+   private final int connectTimeout;
+   private final int connectionRequestTimeout;
+   private final int socketTimeout;
 
    public ESHttpEventStore(final URL url, final CredentialsProvider credentialsProvider) {
-      this("", null, url, credentialsProvider, DEFAUT_LONG_POLL);
+      this("", null, url, credentialsProvider, DEFAUT_LONG_POLL, DEFAULT_CONNECT_TIMEOUT, DEFAULT_CONNECTION_REQUEST_TIMEOUT, DEFAULT_SOCKET_TIMEOUT);
    }
 
    public ESHttpEventStore(final String identifier, final URL url, final CredentialsProvider credentialsProvider) {
-      this(identifier, null, url, credentialsProvider, DEFAUT_LONG_POLL);
+      this(identifier, null, url, credentialsProvider, DEFAUT_LONG_POLL, DEFAULT_CONNECT_TIMEOUT, DEFAULT_CONNECTION_REQUEST_TIMEOUT, DEFAULT_SOCKET_TIMEOUT);
    }
 
-   public ESHttpEventStore(final String identifier, final ThreadFactory threadFactory, final URL url, final CredentialsProvider credentialsProvider, int longPollSec) {
+   public ESHttpEventStore(final String identifier, final ThreadFactory threadFactory, final URL url, final CredentialsProvider credentialsProvider, final int longPollSec, final int connectTimeout,
+         final int connectionRequestTimeout, final int socketTimeout) {
       super();
       this.identifier = identifier;
       this.threadFactory = threadFactory;
       this.url = url;
       this.credentialsProvider = credentialsProvider;
       this.longPollSec = longPollSec;
+      this.connectTimeout = connectTimeout;
+      this.connectionRequestTimeout = connectionRequestTimeout;
+      this.socketTimeout = socketTimeout;
       this.open = false;
       this.hostAndPort = url.getHost() + ":" + url.getPort();
       this.host = url.getHost();
@@ -102,9 +114,17 @@ public final class ESHttpEventStore {
          // Ignore
          return;
       }
+
+      final RequestConfig config = RequestConfig.custom()
+            .setConnectTimeout(connectTimeout)
+            .setConnectionRequestTimeout(connectionRequestTimeout)
+            .setSocketTimeout(socketTimeout)
+            .build();
+
       final HttpAsyncClientBuilder builder = HttpAsyncClients.custom()
             .setMaxConnPerRoute(1000)
             .setMaxConnTotal(1000)
+            .setDefaultRequestConfig(config)
             .setKeepAliveStrategy(new DefaultConnectionKeepAliveStrategy())
             .setThreadFactory(threadFactory);
       if (credentialsProvider != null) {
@@ -165,7 +185,7 @@ public final class ESHttpEventStore {
       }
    }
 
-   public StreamEventsSlice readEventsForward(final String streamName, final long start, int pCount, final String traceString) throws ReadFailedException {
+   public StreamEventsSlice readEventsForward(final String streamName, final long start, final int pCount, final String traceString) throws ReadFailedException {
       this.count = pCount;
       ensureOpen();
 
@@ -184,7 +204,7 @@ public final class ESHttpEventStore {
       }
    }
 
-   public StreamEventsSlice readEventsBackward(String streamName, StreamEventsSlice slice, int pCount, String traceString) throws ReadFailedException {
+   public StreamEventsSlice readEventsBackward(final String streamName, final StreamEventsSlice slice, final int pCount, final String traceString) throws ReadFailedException {
       this.count = pCount;
       if (slice == null) {
          return readEventsBackward(streamName, 0, traceString);
@@ -192,7 +212,7 @@ public final class ESHttpEventStore {
       return readEventsBackward(streamName, slice.getNextEventNumber(), traceString);
    }
 
-   private StreamEventsSlice readEventsBackward(String streamName, long start, String traceString) throws ReadFailedException {
+   private StreamEventsSlice readEventsBackward(final String streamName, final long start, final String traceString) throws ReadFailedException {
       ensureOpen();
 
       final String msg = "readEventsBackward(" + streamName + ", " + start + ", " + count + ")";
@@ -329,7 +349,7 @@ public final class ESHttpEventStore {
             .build();
    }
 
-   private EventResponse enrich(EventResponse event, Entry entry) {
+   private EventResponse enrich(final EventResponse event, final Entry entry) {
       final Event content = event.getContent();
       content.setEventId(entry.getEventId());
       content.setEventType(entry.getEventType());
