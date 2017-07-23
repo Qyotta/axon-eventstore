@@ -36,7 +36,7 @@ import io.prometheus.client.Histogram.Timer;
 
 @SuppressWarnings("nls")
 public final class ESHttpEventStore {
-   private static final int DEFAULT_SOCKET_TIMEOUT = 10000;
+   private static final int DEFAULT_SOCKET_TIMEOUT = 60000;
    private static final int DEFAULT_CONNECTION_REQUEST_TIMEOUT = 10000;
    private static final int DEFAULT_CONNECT_TIMEOUT = 10000;
 
