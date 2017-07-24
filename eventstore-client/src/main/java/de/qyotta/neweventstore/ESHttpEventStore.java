@@ -115,16 +115,9 @@ public final class ESHttpEventStore {
          return;
       }
 
-      final RequestConfig config = RequestConfig.custom()
-            .setConnectTimeout(connectTimeout)
-            .setConnectionRequestTimeout(connectionRequestTimeout)
-            .setSocketTimeout(socketTimeout)
-            .build();
-
       final HttpAsyncClientBuilder builder = HttpAsyncClients.custom()
             .setMaxConnPerRoute(1000)
             .setMaxConnTotal(1000)
-            .setDefaultRequestConfig(config)
             .setKeepAliveStrategy(new DefaultConnectionKeepAliveStrategy())
             .setThreadFactory(threadFactory);
       if (credentialsProvider != null) {
@@ -454,6 +447,12 @@ public final class ESHttpEventStore {
 
    private HttpGet createHttpGet(final URI uri) {
       final HttpGet request = new HttpGet(uri + "?embed=body");
+
+      request.setConfig(RequestConfig.custom()
+            .setConnectionRequestTimeout(connectionRequestTimeout)
+            .setConnectTimeout(connectTimeout)
+            .setSocketTimeout(socketTimeout)
+            .build());
       request.setHeader("Accept-Encoding", "gzip");
       request.setHeader("Accept", "application/vnd.eventstore.atom+json");
       request.setHeader("ES-LongPoll", String.valueOf(longPollSec));
