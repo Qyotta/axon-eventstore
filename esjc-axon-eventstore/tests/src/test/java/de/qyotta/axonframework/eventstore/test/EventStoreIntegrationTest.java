@@ -1,19 +1,11 @@
 package de.qyotta.axonframework.eventstore.test;
 
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-
 import java.util.HashMap;
 import java.util.Map;
 
 import org.axonframework.commandhandling.CommandExecutionException;
 import org.axonframework.commandhandling.GenericCommandMessage;
 import org.axonframework.commandhandling.gateway.CommandGateway;
-import org.axonframework.domain.DomainEventStream;
-import org.axonframework.domain.MetaData;
 import org.junit.After;
 import org.junit.Rule;
 import org.junit.Test;
@@ -41,10 +33,25 @@ public class EventStoreIntegrationTest extends AbstractIntegrationTest {
       final Map<String, String> m = new HashMap<>();
       m.put("networkId", "55");
       commandGateway.sendAndWait(new GenericCommandMessage<CreateTestAggregate>(new CreateTestAggregate(myAggregateId), m));
+      commandGateway.sendAndWait(new GenericCommandMessage<ChangeTestAggregate>(new ChangeTestAggregate(myAggregateId), m));
+      commandGateway.sendAndWait(new GenericCommandMessage<ChangeTestAggregate>(new ChangeTestAggregate(myAggregateId), m));
+      commandGateway.sendAndWait(new GenericCommandMessage<ChangeTestAggregate>(new ChangeTestAggregate(myAggregateId), m));
+      commandGateway.sendAndWait(new GenericCommandMessage<ChangeTestAggregate>(new ChangeTestAggregate(myAggregateId), m));
+      commandGateway.sendAndWait(new GenericCommandMessage<ChangeTestAggregate>(new ChangeTestAggregate(myAggregateId), m));
+
+   }
+
+   @Test
+   public void shouldThrowOn5000Changes() throws Exception {
+      thrown.expect(CommandExecutionException.class);
+      final Map<String, String> m = new HashMap<>();
+      m.put("networkId", "55");
       commandGateway.sendAndWait(new GenericCommandMessage<CreateTestAggregate>(new CreateTestAggregate(myAggregateId), m));
-      commandGateway.sendAndWait(new GenericCommandMessage<CreateTestAggregate>(new CreateTestAggregate(myAggregateId), m));
-      commandGateway.sendAndWait(new GenericCommandMessage<CreateTestAggregate>(new CreateTestAggregate(myAggregateId), m));
-      commandGateway.sendAndWait(new GenericCommandMessage<CreateTestAggregate>(new CreateTestAggregate(myAggregateId), m));
+
+      for (int i = 0; i < 5001; i++) {
+         commandGateway.sendAndWait(new GenericCommandMessage<ChangeTestAggregate>(new ChangeTestAggregate(myAggregateId), m));
+         System.out.println("Send " + (i + 1) + "events.");
+      }
    }
 
    @Rule
@@ -55,20 +62,7 @@ public class EventStoreIntegrationTest extends AbstractIntegrationTest {
       thrown.expect(CommandExecutionException.class);
 
       commandGateway.sendAndWait(new CreateTestAggregate(myAggregateId));
-      commandGateway.sendAndWait(new ChangeTestAggregate("something else"));
-   }
-
-   @Test
-   public void shouldSaveEventsWithMetadata() {
-      final Map<String, String> expected = new HashMap<>();
-      expected.put("Test", "Test");
-      final GenericCommandMessage<CreateTestAggregate> command = new GenericCommandMessage<CreateTestAggregate>(new CreateTestAggregate(myAggregateId));
-      commandGateway.sendAndWait(command.andMetaData(expected));
-      final DomainEventStream readEvents = eventStore.readEvents(MyTestAggregate.class.getSimpleName(), myAggregateId);
-      assertTrue(readEvents.hasNext());
-      final MetaData actual = readEvents.next().getMetaData();
-      assertThat(actual.get("Test"), is(notNullValue()));
-      assertThat(actual.get("Test"), is(equalTo("Test")));
+      commandGateway.sendAndWait(new ChangeTestAggregate(myAggregateId));
    }
 
 }

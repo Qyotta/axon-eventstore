@@ -1,7 +1,5 @@
 package de.qyotta.axonframework.eventstore.config;
 
-import de.qyotta.axonframework.eventstore.utils.EsjcEventstoreUtil;
-
 import static org.junit.Assert.fail;
 
 import java.util.LinkedList;
@@ -13,12 +11,19 @@ import org.axonframework.domain.EventMessage;
 import org.axonframework.eventhandling.EventBus;
 import org.axonframework.eventhandling.EventListener;
 import org.axonframework.eventsourcing.annotation.AbstractAnnotatedAggregateRoot;
+import org.junit.AfterClass;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.support.AnnotationConfigContextLoader;
+
+import com.github.msemys.esjc.ExpectedVersion;
+
+import de.qyotta.axonframework.eventstore.utils.EsjcEventstoreUtil;
+import de.qyotta.eventstore.InMemoryEventstoreProvider;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 //@formatter:off
@@ -28,6 +33,7 @@ import org.springframework.test.context.support.AnnotationConfigContextLoader;
 //@formatter:on
 @SuppressWarnings("nls")
 public abstract class AbstractIntegrationTest {
+   private static final InMemoryEventstoreProvider EVENT_STORE_PROVIDER = new InMemoryEventstoreProvider();
    protected String myAggregateId;
 
    protected final List<Object> actualEvents = new LinkedList<>();
@@ -37,6 +43,18 @@ public abstract class AbstractIntegrationTest {
          actualEvents.add(event.getPayload());
       }
    };
+
+   @BeforeClass
+   public static void beforeClass() {
+      if (!EVENT_STORE_PROVIDER.isRunning()) {
+         EVENT_STORE_PROVIDER.start();
+      }
+   }
+
+   @AfterClass
+   public static void afterClass() {
+      EVENT_STORE_PROVIDER.stop();
+   }
 
    @Autowired
    protected EventBus eventBus;
@@ -51,7 +69,7 @@ public abstract class AbstractIntegrationTest {
    }
 
    protected <T extends AbstractAnnotatedAggregateRoot<?>> void deleteEventStream(final Class<T> classOfT, final String aggregateId) {
-      eventStore.deleteStream(EsjcEventstoreUtil.getStreamName(classOfT.getSimpleName(), aggregateId, "domain"), null);
+      eventStore.deleteStream(EsjcEventstoreUtil.getStreamName(classOfT.getSimpleName(), aggregateId, "domain"), ExpectedVersion.ANY);
    }
 
    protected <T> void expectEventsMatchingExactlyOnce(final List<T> expectedEvents) {

@@ -6,7 +6,7 @@
    <parent>
       <groupId>de.qyotta.eventstore</groupId>
       <artifactId>esjc-axon-eventstore-parent</artifactId>
-      <version>1.0.0</version>
+      <version>1.0.6</version>
    </parent>
    <properties>
       <spring.version>4.2.6.RELEASE</spring.version>
@@ -15,7 +15,13 @@
       <jackson.databind.version>2.8.1</jackson.databind.version>
       <esjc.version>1.8.1</esjc.version>
    </properties>
+
    <dependencies>
+      <dependency>
+         <groupId>de.qyotta.eventstore</groupId>
+         <artifactId>axon-eventstore</artifactId>
+         <version>1.0.6</version>
+      </dependency>
       <dependency>
          <groupId>org.springframework</groupId>
          <artifactId>spring-context</artifactId>
@@ -60,7 +66,7 @@
       <dependency>
          <groupId>de.qyotta.eventstore</groupId>
          <artifactId>esjc-axon-eventstore</artifactId>
-         <version>1.0.3</version>
+         <version>1.0.6</version>
          <scope>test</scope>
       </dependency>
    </dependencies>

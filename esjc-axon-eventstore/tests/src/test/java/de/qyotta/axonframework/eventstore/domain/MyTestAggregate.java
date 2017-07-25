@@ -15,6 +15,8 @@ public class MyTestAggregate extends AbstractAnnotatedAggregateRoot<String> {
    @AggregateIdentifier
    private String aggregateId;
 
+   private int timesChanged;
+
    @CommandHandler
    public MyTestAggregate(final CreateTestAggregate command, final MetaData metaData) {
       this.aggregateId = command.getAggregateId();
@@ -23,10 +25,10 @@ public class MyTestAggregate extends AbstractAnnotatedAggregateRoot<String> {
 
    @CommandHandler
    public void onCommand(final ChangeTestAggregate command, final MetaData metaData) {
-      if (!command.getAggregateId().equals(aggregateId)) {
-         throw new IllegalStateException("Maximum number of events reached ;)"); //$NON-NLS-1$
+      if (timesChanged == 5000) {
+         throw new IllegalStateException("More than 5000 changes");
       }
-      apply(new TestAggregateChanged(command.getAggregateId()), metaData);
+      apply(new TestAggregateChanged(aggregateId), metaData);
    }
 
    @EventSourcingHandler
@@ -36,6 +38,6 @@ public class MyTestAggregate extends AbstractAnnotatedAggregateRoot<String> {
 
    @EventSourcingHandler
    public void onEvent(@SuppressWarnings("unused") final TestAggregateChanged event) {
-      //
+      timesChanged++;
    }
 }

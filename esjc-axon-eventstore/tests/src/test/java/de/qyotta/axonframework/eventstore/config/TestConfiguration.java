@@ -1,13 +1,13 @@
 package de.qyotta.axonframework.eventstore.config;
 
-import de.qyotta.axonframework.eventstore.EsjcEventStore;
-import de.qyotta.axonframework.eventstore.domain.MyTestAggregate;
-
 import java.net.UnknownHostException;
 import java.time.Duration;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.SynchronousQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 import org.axonframework.commandhandling.CommandBus;
 import org.axonframework.commandhandling.CommandTargetResolver;
@@ -39,6 +39,10 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 import com.github.msemys.esjc.EventStoreBuilder;
+import com.github.msemys.esjc.util.concurrent.DefaultThreadFactory;
+
+import de.qyotta.axonframework.eventstore.EsjcEventStore;
+import de.qyotta.axonframework.eventstore.domain.MyTestAggregate;
 
 @Configuration
 @ComponentScan(basePackages = { "de.qyotta.axonframework.eventstore.config" })
@@ -46,14 +50,22 @@ public class TestConfiguration {
 
    @Bean
    public com.github.msemys.esjc.EventStore eventStoreClient() {
+      final ThreadPoolExecutor executor = new ThreadPoolExecutor(2, Integer.MAX_VALUE, 60L, TimeUnit.SECONDS, new SynchronousQueue<>(), new DefaultThreadFactory("es"));
       final EventStoreBuilder eventStoreBuilder = EventStoreBuilder.newBuilder()
-            .clientReconnectionDelay(Duration.ofSeconds(3))
+            .reconnectionDelay(Duration.ofSeconds(5))
+            .heartbeatInterval(Duration.ofSeconds(15000))
+            .heartbeatTimeout(Duration.ofSeconds(2000))
+            .requireMaster(true)
+            .operationTimeout(Duration.ofSeconds(2000))
+            .operationTimeoutCheckInterval(Duration.ofSeconds(15000))
+            .maxOperationQueueSize(10000)
+            .maxConcurrentOperations(5000)
+            .maxOperationRetries(Integer.MAX_VALUE)
+            .maxReconnections(Integer.MAX_VALUE)
+            .failOnNoServerResponse(false)
             .userCredentials("admin", "changeit")
-            .clusterNodeUnlimitedDiscoverAttempts()
-            .unlimitedClientReconnections()
-            .unlimitedOperationRetries()
             .singleNodeAddress("127.0.0.1", 3334)
-            .requireMasterEnabled();
+            .executor(executor);
 
       return eventStoreBuilder.build();
    }
