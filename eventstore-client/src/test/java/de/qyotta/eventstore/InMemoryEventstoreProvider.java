@@ -23,7 +23,7 @@ public class InMemoryEventstoreProvider {
    private static final Logger LOGGER = LoggerFactory.getLogger(InMemoryEventstoreProvider.class.getName());
 
    private static final String EVENTSTORE_DIR = "/tmp/eventstore/";
-   private static final String EVENTSTORE_VERSION = "3.9.1";
+   private static final String EVENTSTORE_VERSION = "3.9.4";
    private static final String EVENTSTORE_OSX_NAME = "EventStore-OSS-MacOSX-v" + EVENTSTORE_VERSION;
    private static final String EVENTSTORE_MAC_DOWNLOAD = "http://download.geteventstore.com/binaries/" + EVENTSTORE_OSX_NAME + ".tar.gz";
    private static final String EVENTSTORE_UBUNTU_NAME = "EventStore-OSS-Ubuntu-14.04-v" + EVENTSTORE_VERSION;
@@ -100,7 +100,7 @@ public class InMemoryEventstoreProvider {
       final long start = System.currentTimeMillis();
       installIfNeeded();
       final String command = EVENTSTORE_DIR
-            + "eventstored --int-tcp-port=3333 --int-http-port=4444 --ext-tcp-port=3334 --ext-http-port=4445 --mem-db --run-projections=all --start-standard-projections=true";
+            + "eventstored --int-tcp-port=3334 --int-http-port=4445 --ext-tcp-port=3335 --ext-http-port=4446 --mem-db --run-projections=all --start-standard-projections=true";
 
       try {
          eventStoreProcess = Runtime.getRuntime()
@@ -130,7 +130,7 @@ public class InMemoryEventstoreProvider {
 
    public boolean isRunning() {
       try {
-         final HttpURLConnection connection = (HttpURLConnection) new URL("http://127.0.0.1:4445").openConnection();
+         final HttpURLConnection connection = (HttpURLConnection) new URL("http://127.0.0.1:4446").openConnection();
          connection.setRequestMethod("HEAD");
          final int responseCode = connection.getResponseCode();
          if (responseCode == 404) {

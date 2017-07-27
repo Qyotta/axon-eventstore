@@ -9,6 +9,8 @@ import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
+import org.axonframework.cache.Cache;
+import org.axonframework.cache.EhCacheAdapter;
 import org.axonframework.commandhandling.CommandBus;
 import org.axonframework.commandhandling.CommandTargetResolver;
 import org.axonframework.commandhandling.SimpleCommandBus;
@@ -26,12 +28,15 @@ import org.axonframework.common.annotation.SpringBeanParameterResolverFactory;
 import org.axonframework.eventhandling.EventBus;
 import org.axonframework.eventhandling.SimpleEventBus;
 import org.axonframework.eventhandling.annotation.AnnotationEventListenerBeanPostProcessor;
+import org.axonframework.eventsourcing.CachingEventSourcingRepository;
 import org.axonframework.eventsourcing.EventSourcingRepository;
+import org.axonframework.eventsourcing.GenericAggregateFactory;
 import org.axonframework.eventstore.EventStore;
 import org.axonframework.saga.ResourceInjector;
 import org.axonframework.saga.spring.SpringResourceInjector;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.cache.ehcache.EhCacheManagerFactoryBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -43,6 +48,7 @@ import com.github.msemys.esjc.util.concurrent.DefaultThreadFactory;
 
 import de.qyotta.axonframework.eventstore.EsjcEventStore;
 import de.qyotta.axonframework.eventstore.domain.MyTestAggregate;
+import net.sf.ehcache.CacheManager;
 
 @Configuration
 @ComponentScan(basePackages = { "de.qyotta.axonframework.eventstore.config" })
@@ -64,7 +70,7 @@ public class TestConfiguration {
             .maxReconnections(Integer.MAX_VALUE)
             .failOnNoServerResponse(false)
             .userCredentials("admin", "changeit")
-            .singleNodeAddress("127.0.0.1", 3334)
+            .singleNodeAddress("127.0.0.1", 3335)
             .executor(executor);
 
       return eventStoreBuilder.build();
@@ -76,10 +82,32 @@ public class TestConfiguration {
       return new EsjcEventStore(eventStoreClient);
    }
 
+   @Bean
+   public EhCacheAdapter ehCache(final CacheManager cacheManager) {
+      return new EhCacheAdapter(cacheManager.getCache("testCache"));
+   }
+
+   @Bean
+   public EhCacheManagerFactoryBean ehCacheManagerFactoryBean() {
+      final EhCacheManagerFactoryBean ehCacheManagerFactoryBean = new EhCacheManagerFactoryBean();
+      ehCacheManagerFactoryBean.setShared(true);
+
+      return ehCacheManagerFactoryBean;
+   }
+
+   // @Bean(name = "testAggregateEventsourcingRepository")
+   // @Autowired
+   // public EventSourcingRepository<MyTestAggregate> respository(final EventStore eventStore, final EventBus eventBus) {
+   // final EventSourcingRepository<MyTestAggregate> repository = new EventSourcingRepository<>(MyTestAggregate.class, eventStore);
+   // repository.setEventBus(eventBus);
+   // return repository;
+   // }
+
    @Bean(name = "testAggregateEventsourcingRepository")
    @Autowired
-   public EventSourcingRepository<MyTestAggregate> respository(final EventStore eventStore, final EventBus eventBus) {
-      final EventSourcingRepository<MyTestAggregate> repository = new EventSourcingRepository<>(MyTestAggregate.class, eventStore);
+   public EventSourcingRepository<MyTestAggregate> respository(final EventStore eventStore, final EventBus eventBus, final Cache cache) {
+      final CachingEventSourcingRepository<MyTestAggregate> repository = new CachingEventSourcingRepository<>(new GenericAggregateFactory<>(MyTestAggregate.class), eventStore);
+      repository.setCache(cache);
       repository.setEventBus(eventBus);
       return repository;
    }

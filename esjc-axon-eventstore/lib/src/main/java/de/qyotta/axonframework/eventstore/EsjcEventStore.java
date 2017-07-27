@@ -13,6 +13,7 @@ import org.axonframework.domain.DomainEventMessage;
 import org.axonframework.domain.DomainEventStream;
 import org.axonframework.eventstore.EventStore;
 import org.axonframework.eventstore.EventStreamNotFoundException;
+import org.axonframework.eventstore.PartialStreamSupport;
 import org.axonframework.serializer.Revision;
 
 import com.github.msemys.esjc.EventData;
@@ -22,11 +23,11 @@ import com.google.gson.Gson;
 import de.qyotta.axonframework.eventstore.utils.Constants;
 import de.qyotta.axonframework.eventstore.utils.EsjcEventstoreUtil;
 
-@SuppressWarnings({ "rawtypes" })
-public class EsjcEventStore implements EventStore {
+@SuppressWarnings({ "rawtypes", "nls" })
+public class EsjcEventStore implements EventStore, PartialStreamSupport {
+   private static final String AGGREGATE_OF_TYPE_S_WITH_IDENTIFIER_S_CANNOT_BE_FOUND = "Aggregate of type [%s] with identifier [%s] cannot be found.";
    private final com.github.msemys.esjc.EventStore client;
    private final Gson gson = new Gson();
-   @SuppressWarnings("nls")
    private String prefix = "domain";
 
    public EsjcEventStore(final com.github.msemys.esjc.EventStore client) {
@@ -55,14 +56,40 @@ public class EsjcEventStore implements EventStore {
    @Override
    public DomainEventStream readEvents(final String type, final Object identifier) {
       try {
-         final String streamName = EsjcEventstoreUtil.getStreamName(type, identifier, prefix);
-         final EsjcEventStreamBackedDomainEventStream eventStream = new EsjcEventStreamBackedDomainEventStream(streamName, client);
+         final EsjcEventStreamBackedDomainEventStream eventStream = new EsjcEventStreamBackedDomainEventStream(EsjcEventstoreUtil.getStreamName(type, identifier, prefix), client);
          if (!eventStream.hasNext()) {
             throw new EventStreamNotFoundException(type, identifier);
          }
          return eventStream;
       } catch (final EventStreamNotFoundException e) {
-         throw new EventStreamNotFoundException(String.format("Aggregate of type [%s] with identifier [%s] cannot be found.", type, identifier), e); //$NON-NLS-1$
+         throw new EventStreamNotFoundException(String.format(AGGREGATE_OF_TYPE_S_WITH_IDENTIFIER_S_CANNOT_BE_FOUND, type, identifier), e);
+      }
+   }
+
+   @Override
+   public DomainEventStream readEvents(String type, Object identifier, long firstSequenceNumber) {
+      try {
+         final EsjcEventStreamBackedDomainEventStream eventStream = new EsjcEventStreamBackedDomainEventStream(EsjcEventstoreUtil.getStreamName(type, identifier, prefix), client, firstSequenceNumber);
+         if (!eventStream.hasNext()) {
+            throw new EventStreamNotFoundException(type, identifier);
+         }
+         return eventStream;
+      } catch (final EventStreamNotFoundException e) {
+         throw new EventStreamNotFoundException(String.format(AGGREGATE_OF_TYPE_S_WITH_IDENTIFIER_S_CANNOT_BE_FOUND, type, identifier), e);
+      }
+   }
+
+   @Override
+   public DomainEventStream readEvents(String type, Object identifier, long firstSequenceNumber, long lastSequenceNumber) {
+      try {
+         final EsjcEventStreamBackedDomainEventStream eventStream = new EsjcEventStreamBackedDomainEventStream(EsjcEventstoreUtil.getStreamName(type, identifier, prefix), client, firstSequenceNumber,
+               lastSequenceNumber);
+         if (!eventStream.hasNext()) {
+            throw new EventStreamNotFoundException(type, identifier);
+         }
+         return eventStream;
+      } catch (final EventStreamNotFoundException e) {
+         throw new EventStreamNotFoundException(String.format(AGGREGATE_OF_TYPE_S_WITH_IDENTIFIER_S_CANNOT_BE_FOUND, type, identifier), e);
       }
    }
 
@@ -107,4 +134,5 @@ public class EsjcEventStore implements EventStore {
    public void setPrefix(final String prefix) {
       this.prefix = prefix;
    }
+
 }

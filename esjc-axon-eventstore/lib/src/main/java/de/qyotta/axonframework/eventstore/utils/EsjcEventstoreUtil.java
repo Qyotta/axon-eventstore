@@ -40,7 +40,7 @@ public final class EsjcEventstoreUtil {
          final Map<String, ?> metaData = gson.fromJson(new String(originalEvent.metadata, UTF_8), METADATA_TYPE);
 
          final Map<String, ?> eventMetadata = (Map<String, ?>) metaData.get(Constants.EVENT_METADATA_KEY);
-         final int sequenceNumber = originalEvent.eventNumber;
+         final long sequenceNumber = originalEvent.eventNumber;
          final DateTime dateTime = new DateTime(originalEvent.created.toEpochMilli(), DateTimeZone.UTC);
          final String identifier = String.valueOf(originalEvent.eventId);
          final Object aggregateIdentifier = metaData.get(Constants.AGGREGATE_ID_KEY);

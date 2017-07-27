@@ -8,6 +8,7 @@ import org.axonframework.eventsourcing.annotation.EventSourcingHandler;
 
 import lombok.NoArgsConstructor;
 
+@SuppressWarnings("nls")
 @NoArgsConstructor
 public class MyTestAggregate extends AbstractAnnotatedAggregateRoot<String> {
    private static final long serialVersionUID = 1L;
@@ -24,7 +25,7 @@ public class MyTestAggregate extends AbstractAnnotatedAggregateRoot<String> {
    }
 
    @CommandHandler
-   public void onCommand(final ChangeTestAggregate command, final MetaData metaData) {
+   public void onCommand(@SuppressWarnings("unused") final ChangeTestAggregate command, final MetaData metaData) {
       if (timesChanged == 5000) {
          throw new IllegalStateException("More than 5000 changes");
       }
