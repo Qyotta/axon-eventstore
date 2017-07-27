@@ -30,7 +30,7 @@
          </activation>
          <modules>
             <module>lib</module>
-            <module>tests</module>
+            <!--<module>tests</module>-->
          </modules>
       </profile>
    </profiles>
