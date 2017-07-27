@@ -3,7 +3,7 @@
    <modelVersion>4.0.0</modelVersion>
    <groupId>de.qyotta.eventstore</groupId>
    <artifactId>eventstore-parent</artifactId>
-   <version>1.0.6</version>
+   <version>1.0.7</version>
    <packaging>pom</packaging>
    <properties>
       <maven.compiler.plugin.version>3.0</maven.compiler.plugin.version>

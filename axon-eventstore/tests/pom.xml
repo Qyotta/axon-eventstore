@@ -6,7 +6,7 @@
    <parent>
       <groupId>de.qyotta.eventstore</groupId>
       <artifactId>axon-eventstore-parent</artifactId>
-      <version>1.0.6</version>
+      <version>1.0.7</version>
    </parent>
    <properties>
       <spring.version>4.2.6.RELEASE</spring.version>
@@ -18,12 +18,12 @@
       <dependency>
          <groupId>de.qyotta.eventstore</groupId>
          <artifactId>axon-eventstore</artifactId>
-         <version>1.0.6</version>
+         <version>1.0.7</version>
       </dependency>
       <dependency>
          <groupId>de.qyotta.eventstore</groupId>
          <artifactId>eventstore-client</artifactId>
-         <version>1.0.6</version>
+         <version>1.0.7</version>
          <type>test-jar</type>
          <scope>test</scope>
       </dependency>
